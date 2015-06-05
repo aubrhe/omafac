@@ -70,13 +70,54 @@ Definition get_disk (e : state) :=
 Definition same_elts {A} l m :=
   forall a : A, In a l <-> In a m.
 
+Definition same_elts_upto i l m :=
+  forall a, a < i -> (In a l <-> In a m).
+
 Definition equiv e f :=
   get_top e = get_top f
   /\ get_bottom e = get_bottom f
   /\ same_elts (get_memory e) (get_memory f)
   /\ same_elts (get_disk e) (get_disk f).
 
-Notation "e ≡ f" := (equiv e f) (at level 20). 
+Definition equiv_upto e f :=
+  get_top e = get_top f
+  /\ get_bottom e = get_bottom f
+  /\ same_elts_upto (get_bottom e) (get_memory e) (get_memory f)
+  /\ same_elts_upto (get_bottom e) (get_disk e) (get_disk f).
+
+Notation "e ≡ f" := (equiv e f) (at level 20). (*need to understand 20*)
+
+Lemma equiv_refl e :
+  e ≡ e.
+Proof.
+repeat split; auto.
+Qed.
+
+Lemma equiv_sym e f :
+  e ≡ f -> f ≡ e.
+Proof.
+intro H. destruct H as (h0 & h1 & h2 & h3).
+unfold equiv; rewrite h1 in *.
+ repeat split; intros; auto;
+ [ apply h2
+ | apply h2
+ | apply h3
+ | apply h3]; auto.
+Qed.
+
+Lemma equiv_trans f e g :
+  e ≡ f -> f ≡ g -> e ≡ g .
+Proof.
+intros (h0 & h1 & h2 & h3) (hh0 & hh1 & hh2 & hh3).
+unfold equiv; rewrite h0 in *.
+rewrite h1 in *; rewrite hh1 in *.
+repeat split; auto; intros. 
+apply hh2; auto; apply h2; auto.
+apply h2; auto; apply hh2; auto.
+apply hh3; auto; apply h3; auto.
+apply h3; auto; apply hh3; auto.
+Qed.
+
 
 Definition size_memory e := length (get_memory e).
 
@@ -118,12 +159,57 @@ Inductive valid_schedule : state -> schedule -> Prop :=
 
 Hint Constructors valid_schedule.
 
+Lemma equiv_valid_op e f :
+  e ≡ f -> (forall o, valid_op e o -> valid_op f o ).
+Proof.
+intros (h0 & h1 & h2 & h3) o h. unfold valid_op in *. 
+destruct o as (o & i); destruct o; simpl in *.
 
-Lemma valid_app e s1 s2 :
+rewrite <- h0; auto.
+rewrite <- h0; rewrite <- h1; auto.
+rewrite <- h0; rewrite <- h1; auto.
+
+Qed.
+
+Lemma equiv_valid e f :
+  e ≡ f -> (forall s, valid_schedule e s -> valid_schedule f s ).
+Proof.
+cut (forall s e f, e ≡ f -> valid_schedule e s -> valid_schedule f s).
+intros; auto.
+apply (H _ e); auto.
+induction s; intros; auto.
+inversion H0. discriminate.
+
+Qed.
+
+Lemma equiv_eval e f :
+  e ≡ f -> (forall s, eval_schedule e s ≡ eval_schedule f s ).
+Proof.
+Admitted.
+
+
+Lemma valid_app s1 s2 : forall e,
   valid_schedule e (s1 ++ s2) <->
   valid_schedule e s1 /\ valid_schedule (eval_schedule e s1) s2.
 Proof.
-Admitted.
+induction s1; intro e; split; intro Hvs; auto. 
+SearchAbout (nil ++ _). rewrite app_nil_l. destruct Hvs. simpl in *. assumption.
+rewrite <- app_comm_cons in *. inversion Hvs. 
+discriminate.
+apply IHs1 in H3. destruct H3.
+split.
+SearchAbout ((_::_)++_). 
+apply vcons; auto.
+unfold eval_schedule in *.
+simpl. assumption.
+
+
+rewrite <- app_comm_cons in *. 
+destruct Hvs as (hvs1 & hvs2). inversion hvs1; auto. discriminate. apply vcons. 
+assumption.
+rewrite IHs1. split; auto.
+
+Qed.
 
 Notation "[ a , b ]" := ((a,b)::nil) (at level 50).
 
@@ -151,6 +237,9 @@ Fixpoint remove_double_write_mem s :=
     | oi::s => oi::(remove_double_write_mem s)
   end.
 
+
+
+
 Lemma correct_rdwm s e :
   eval_schedule e s ≡ eval_schedule e (remove_double_write_mem s).
 Admitted.
@@ -159,8 +248,8 @@ Lemma valid_rdwm s e :
   valid_schedule e (remove_double_write_mem s).
 Admitted.
 Lemma optimal_rdwm s e :
-  valid_schedule e s ->
-  valid_schedule e (remove_double_write_mem s).
+  optimal_schedule e s ->
+  optimal_schedule e (remove_double_write_mem s).
 Admitted.
 Lemma no_dwm_rdwm s :
   forall i,
