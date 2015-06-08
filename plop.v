@@ -164,6 +164,13 @@ Inductive valid_schedule : state -> schedule -> Prop :=
 
 Hint Constructors valid_schedule.
 
+(**
+We need to correct the memory thing: 
+we need to have a correct size function, either 
+  (i) we use sets for memory, or
+  (ii) we keep using lists but we need to make sure they do not have duplicated elements.
+*)
+
 Lemma same_size_mem e f :
   same_elts (get_memory e) (get_memory f) -> size_memory e = size_memory f.
 Proof.
@@ -188,7 +195,8 @@ apply h3; auto.
 Qed.
 
 Lemma valid_prefix e :
-  forall a s, valid_schedule e (a::s) -> valid_op e a.
+  forall a s, valid_schedule e (a::s) -> 
+     (valid_op e a /\ valid_schedule (eval_op e a) s).
 Proof.
 Admitted.
 
@@ -203,7 +211,15 @@ apply vcons.
 cut (valid_op e0 a). 
 apply equiv_valid_op.
 exact H.
-apply valid_prefix in H0; auto.
+apply valid_prefix in H0; destruct H0; auto.
+apply valid_prefix in H0; destruct H0; auto.
+cut (e0 ≡ f0 -> eval_op e0 a = eval_op f0 a).
+intros. apply H2 in H. rewrite <- H; auto.
+
+clear.
+intro H; destruct H as (h0 & h1 & h2 & h3).
+destruct a as (o & i); destruct o; unfold eval_op; simpl in *.
+try rewrite h0; try rewrite h1; try rewrite h2; try rewrite h3; auto.
 
 Qed.
 
