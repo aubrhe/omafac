@@ -70,8 +70,11 @@ Definition get_disk (e : state) :=
 Definition same_elts {A} l m :=
   forall a : A, In a l <-> In a m.
 
+
+(** It has become useless
 Definition same_elts_upto i l m :=
   forall a, a < i -> (In a l <-> In a m).
+*)
 
 Definition equiv e f :=
   get_top e = get_top f
@@ -79,13 +82,15 @@ Definition equiv e f :=
   /\ same_elts (get_memory e) (get_memory f)
   /\ same_elts (get_disk e) (get_disk f).
 
+(**
 Definition equiv_upto e f :=
   get_top e = get_top f
   /\ get_bottom e = get_bottom f
   /\ same_elts_upto (get_bottom e) (get_memory e) (get_memory f)
   /\ same_elts_upto (get_bottom e) (get_disk e) (get_disk f).
+*)
 
-Notation "e ≡ f" := (equiv e f) (at level 20). (*need to understand 20*)
+Notation "e ≡ f" := (equiv e f) (at level 20).
 
 Lemma equiv_refl e :
   e ≡ e.
@@ -159,6 +164,11 @@ Inductive valid_schedule : state -> schedule -> Prop :=
 
 Hint Constructors valid_schedule.
 
+Lemma same_size_mem e f :
+  same_elts (get_memory e) (get_memory f) -> size_memory e = size_memory f.
+Proof.
+Admitted.
+
 Lemma equiv_valid_op e f :
   e ≡ f -> (forall o, valid_op e o -> valid_op f o ).
 Proof.
@@ -167,9 +177,20 @@ destruct o as (o & i); destruct o; simpl in *.
 
 rewrite <- h0; auto.
 rewrite <- h0; rewrite <- h1; auto.
-rewrite <- h0; rewrite <- h1; auto.
-
+rewrite <- h0. 
+cut (size_memory e = size_memory f). intro. rewrite <- H. exact h. 
+apply same_size_mem; exact h2.
+rewrite <- h0; auto.
+apply h2; auto.
+apply h3; auto.
+apply h2; auto.
+apply h3; auto.
 Qed.
+
+Lemma valid_prefix e :
+  forall a s, valid_schedule e (a::s) -> valid_op e a.
+Proof.
+Admitted.
 
 Lemma equiv_valid e f :
   e ≡ f -> (forall s, valid_schedule e s -> valid_schedule f s ).
@@ -178,7 +199,11 @@ cut (forall s e f, e ≡ f -> valid_schedule e s -> valid_schedule f s).
 intros; auto.
 apply (H _ e); auto.
 induction s; intros; auto.
-inversion H0. discriminate.
+apply vcons. 
+cut (valid_op e0 a). 
+apply equiv_valid_op.
+exact H.
+apply valid_prefix in H0; auto.
 
 Qed.
 
