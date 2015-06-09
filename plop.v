@@ -129,19 +129,31 @@ Definition get_memory (e : state) :=
 Definition get_disk (e : state) :=
   match e with (t,b,m,d) => d end.
 
+(*
+Definition same_elts {A} l m :=
+  forall a : A, In a l <-> In a m.
+*)
+
+(** It has become useless
+Definition same_elts_upto i l m :=
+  forall a, a < i -> (In a l <-> In a m).
+*)
+
 Definition equiv e f :=
   get_top e = get_top f
   /\ get_bottom e = get_bottom f
   /\ NSet.eq (get_memory e) (get_memory f)
   /\ NSet.eq (get_disk e) (get_disk f).
 
-(*Definition equiv_upto e f :=
+(**
+Definition equiv_upto e f :=
   get_top e = get_top f
   /\ get_bottom e = get_bottom f
   /\ same_elts_upto (get_bottom e) (get_memory e) (get_memory f)
-  /\ same_elts_upto (get_bottom e) (get_disk e) (get_disk f).*)
+  /\ same_elts_upto (get_bottom e) (get_disk e) (get_disk f).
+*)
 
-Notation "e ≡ f" := (equiv e f) (at level 20). (*need to understand 20*)
+Notation "e ≡ f" := (equiv e f) (at level 20).
 
 Lemma equiv_refl e :
   e ≡ e.
@@ -210,6 +222,20 @@ Inductive valid_schedule : state -> schedule -> Prop :=
 
 Hint Constructors valid_schedule.
 
+(**
+We need to correct the memory thing: 
+we need to have a correct size function, either 
+  (i) we use sets for memory, or
+  (ii) we keep using lists but we need to make sure they do not have duplicated elements.
+*)
+
+Lemma same_size_mem e f :
+  e ≡ f -> size_memory e = size_memory f.
+Proof.
+  intros (h1 & h2 & h3 & h4).
+  apply NP.Equal_cardinal;assumption.
+Qed.
+
 Lemma equiv_valid_op e f :
   e ≡ f -> (forall o, valid_op e o -> valid_op f o ).
 Proof.
@@ -220,8 +246,8 @@ rewrite <- h0; auto.
 rewrite <- h0; rewrite <- h1; auto.
 destruct h as (h4 & h5c);
   rewrite <- h0; split;
-  [|replace (size_memory f) with (size_memory e)];auto.
-apply NP.Equal_cardinal;auto.
+  [|replace (size_memory f) with (size_memory e);
+     [|apply same_size_mem;split;[|split;[|split]]]];assumption.
 rewrite <- h0;auto.
 apply h2;auto.
 apply h3;auto.
@@ -242,6 +268,12 @@ Proof.
   split;[|split;[|split]];auto;apply NP.Equal_remove;auto. 
   split;[|split;[|split]];auto;apply NP.Equal_remove;auto. 
 Qed.
+
+(*Lemma valid_prefix e :
+  forall a s, valid_schedule e (a::s) -> 
+     (valid_op e a /\ valid_schedule (eval_op e a) s).
+Proof.
+Admitted.*)
 
 Lemma equiv_valid e f :
   e ≡ f -> (forall s, valid_schedule e s -> valid_schedule f s ).
