@@ -123,7 +123,6 @@ apply hh3; auto; apply h3; auto.
 apply h3; auto; apply hh3; auto.
 Qed.
 
-
 Definition size_memory e := length (get_memory e).
 
 Definition rmv := remove (eq_nat_dec).
@@ -171,8 +170,8 @@ we need to have a correct size function, either
   (ii) we keep using lists but we need to make sure they do not have duplicated elements.
 *)
 
-Lemma same_size_mem e f :
-  same_elts (get_memory e) (get_memory f) -> size_memory e = size_memory f.
+Lemma same_mem e f :
+  same_elts (get_memory e) (get_memory f) -> get_memory e = get_memory f.
 Proof.
 Admitted.
 
@@ -186,7 +185,9 @@ rewrite <- h0; auto.
 rewrite <- h0; rewrite <- h1; auto.
 rewrite <- h0. 
 cut (size_memory e = size_memory f). intro. rewrite <- H. exact h. 
-apply same_size_mem; exact h2.
+cut (get_memory e = get_memory f -> size_memory e = size_memory f).
+intro H; unfold size_memory in H; apply H; apply same_mem; auto.
+intro H; unfold size_memory; rewrite H; auto.
 rewrite <- h0; auto.
 apply h2; auto.
 apply h3; auto.
@@ -213,12 +214,42 @@ apply equiv_valid_op.
 exact H.
 apply valid_prefix in H0; destruct H0; auto.
 apply valid_prefix in H0; destruct H0; auto.
+cut (eval_op e0 a ≡ eval_op f0 a). 
+intro; apply IHs with (eval_op e0 a); auto.
+
+destruct a as (o & i); destruct o; unfold eval_op in *; simpl in *.
+
+destruct H as (h0 & h1 & h2 & h3).
+try rewrite <- h0; try rewrite <- h1.
+repeat split; try simpl; auto. apply h2. apply h2. apply h3. apply h3.
+
+destruct H as (h0 & h1 & h2 & h3).
+try rewrite <- h0; try rewrite <- h1.
+repeat split; try simpl; auto. apply h2. apply h2. apply h3. apply h3.
+
+destruct H as (h0 & h1 & h2 & h3).
+try rewrite <- h0; try rewrite <- h1.
+split. auto. split. auto. split. simpl.
+absurd (exists j: nat, (In j (i::get_memory e0))/\~(In j (i::get_memory f0))).
+intro.
+destruct H. inversion H. inversion H2. subst.
+exfalso; apply H3; constructor. auto. 
+apply H4 in h2.
+
+absurd (same_elts (i :: get_memory e0) (i :: get_memory f0)).
+exists j
+
+
+Admitted.
+repeat split; try simpl; auto. 
+left. destruct H as [H11 | H12]; auto. apply h2. apply h2. apply h3. apply h3.
+
+
 cut (e0 ≡ f0 -> eval_op e0 a = eval_op f0 a).
 intros. apply H2 in H. rewrite <- H; auto.
-
 clear.
 intro H; destruct H as (h0 & h1 & h2 & h3).
-destruct a as (o & i); destruct o; unfold eval_op; simpl in *.
+destruct a as (o & i); destruct o; unfold eval_op; simpl in *; apply same_mem in h2.
 try rewrite h0; try rewrite h1; try rewrite h2; try rewrite h3; auto.
 
 Qed.
