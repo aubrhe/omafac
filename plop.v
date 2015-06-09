@@ -7,7 +7,7 @@ Module Nat <: OrderedType.
 
   Lemma eq_refl : forall x : t, eq x x.
   Proof.
-    intro;unfold eq;auto.
+    intro; unfold eq; auto.
   Qed.
 
   Lemma eq_sym : forall x y : t, eq x y -> eq y x.
