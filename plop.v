@@ -129,29 +129,11 @@ Definition get_memory (e : state) :=
 Definition get_disk (e : state) :=
   match e with (t,b,m,d) => d end.
 
-(*
-Definition same_elts {A} l m :=
-  forall a : A, In a l <-> In a m.
-*)
-
-(** It has become useless
-Definition same_elts_upto i l m :=
-  forall a, a < i -> (In a l <-> In a m).
-*)
-
 Definition equiv e f :=
   get_top e = get_top f
   /\ get_bottom e = get_bottom f
   /\ NSet.eq (get_memory e) (get_memory f)
   /\ NSet.eq (get_disk e) (get_disk f).
-
-(**
-Definition equiv_upto e f :=
-  get_top e = get_top f
-  /\ get_bottom e = get_bottom f
-  /\ same_elts_upto (get_bottom e) (get_memory e) (get_memory f)
-  /\ same_elts_upto (get_bottom e) (get_disk e) (get_disk f).
-*)
 
 Notation "e ≡ f" := (equiv e f) (at level 20).
 
@@ -222,18 +204,11 @@ Inductive valid_schedule : state -> schedule -> Prop :=
 
 Hint Constructors valid_schedule.
 
-(**
-We need to correct the memory thing: 
-we need to have a correct size function, either 
-  (i) we use sets for memory, or
-  (ii) we keep using lists but we need to make sure they do not have duplicated elements.
-*)
-
 Lemma same_size_mem e f :
   e ≡ f -> size_memory e = size_memory f.
 Proof.
   intros (h1 & h2 & h3 & h4).
-  apply NP.Equal_cardinal;assumption.
+  apply NP.Equal_cardinal. assumption.
 Qed.
 
 Lemma equiv_valid_op e f :
@@ -269,11 +244,13 @@ Proof.
   split;[|split;[|split]];auto;apply NP.Equal_remove;auto. 
 Qed.
 
-(*Lemma valid_prefix e :
+(*
+Lemma valid_prefix e :
   forall a s, valid_schedule e (a::s) -> 
      (valid_op e a /\ valid_schedule (eval_op e a) s).
 Proof.
-Admitted.*)
+Admitted.
+*)
 
 Lemma equiv_valid e f :
   e ≡ f -> (forall s, valid_schedule e s -> valid_schedule f s ).
@@ -359,26 +336,6 @@ Proof.
   rewrite <- app_comm_cons in *;destruct Hvs as (hvs1 & hvs2);
   inversion hvs1; auto;[discriminate|];apply vcons;
   [|rewrite IHs1; split];assumption.
-
-
-(*induction s1; intro e; split; intro Hvs; auto. 
-SearchAbout (nil ++ _). rewrite app_nil_l. destruct Hvs. simpl in *. assumption.
-rewrite <- app_comm_cons in *. inversion Hvs. 
-discriminate.
-apply IHs1 in H3. destruct H3.
-split.
-SearchAbout ((_::_)++_). 
-apply vcons; auto.
-unfold eval_schedule in *.
-simpl. assumption.
-
-
-rewrite <- app_comm_cons in *. 
-destruct Hvs as (hvs1 & hvs2). inversion hvs1; auto. discriminate. apply vcons. 
-assumption.
-rewrite IHs1. split; auto.
-
- *)
 Qed.
 
 Notation "[ a , b ]" := ((a,b)::nil) (at level 50).
@@ -416,6 +373,7 @@ Lemma invert_rwmi s :
                      remove_write_mem_i s4 i = s2)
     \/ exists s3, s=s3++s2 /\
                      remove_write_mem_i s3 i = s1.
+(*question: what good is this lemma?*)
 Proof.
   induction s; intros s1 s2 i h; simpl in * .
   destruct s1;destruct s2;
@@ -504,10 +462,20 @@ Lemma no_dwm_rdwmi s :
     no_double_write_mem_i (remove_write_mem_i s j) i.
 Proof.
   assert (forall i s1 s2,remove_write_mem_i s1 i <> (Wm,i)::s2) as lem1.
-  induction s1 ;intros s2 h.
+  induction s1. intros s2 h.
   simpl in h; discriminate.
-  destruct a as (o,k); destruct o; simpl in h; try
-                                                   discriminate.
+  destruct a as (o,k); destruct o; try discriminate.
+case (eq_nat_dec i k) as [ -> | ].
+simpl. rewrite <- beq_nat_refl in *. apply IHs1.
+simpl. replace (beq_nat i k) with false in *.
+intro. injection. intros. rewrite H1 in n; auto.
+SearchAbout beq_nat.
+symmetry; apply beq_nat_false_iff; auto.
+simpl.
+case (eq_nat_dec i k) as [ -> | ];
+[rewrite <- beq_nat_refl in *| replace (beq_nat i k) with false in *].
+congruence. congruence. symmetry; apply beq_nat_false_iff; auto.
+
   case (eq_nat_dec i k) as [ -> | ];
   [rewrite <- beq_nat_refl in *
   |replace (beq_nat i k) with false in *;
