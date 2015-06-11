@@ -456,11 +456,15 @@ Proof.
 
 Qed.
 
+
+Axiom excluded_middle : forall A : Prop, A \/ ~A.
+
 Lemma no_dwm_rdwmi s :
   forall i j,
     no_double_write_mem_i s i ->
     no_double_write_mem_i (remove_write_mem_i s j) i.
 Proof.
+(* -> useless this lemma?
   assert (forall i s1 s2,remove_write_mem_i s1 i <> (Wm,i)::s2) as lem1.
   induction s1. intros s2 h.
   simpl in h; discriminate.
@@ -475,6 +479,28 @@ simpl.
 case (eq_nat_dec i k) as [ -> | ];
 [rewrite <- beq_nat_refl in *| replace (beq_nat i k) with false in *].
 congruence. congruence. symmetry; apply beq_nat_false_iff; auto.
+*)
+
+intros.
+induction s.
+simpl;auto.
+destruct a as (o,k); destruct o; try discriminate;simpl.
+unfold no_double_write_mem_i.
+intro.
+destruct H0  as (s1&s2&s3&H0l&H0r).
+destruct s1. 
+  simpl in H0l; discriminate. 
+  inversion H0l; rewrite <- H1 in H0l.
+  unfold no_double_write_mem_i in H.
+  unfold remove_write_mem_i in H2.
+(*
+destruct (excluded_middle (exists s1 s2 s3, 
+    ((F,k)::remove_write_mem_i s j)= s1 ++ [Wm,i] ++ s2 ++ [Wm,i] ++ s3)) 
+  as [H1|H2].
+destruct H1 as (s1&s2&s3&h1).
+destruct s1. simpl in h1. discriminate. inversion h1. rewrite <- H1 in h1.
+rewrite h1. simpl. 
+*)
 
   case (eq_nat_dec i k) as [ -> | ];
   [rewrite <- beq_nat_refl in *
