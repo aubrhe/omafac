@@ -539,7 +539,7 @@ Qed.
     | oi::s => oi::(remove_double_write_mem s)
   end.*)
 
-
+(*
 Lemma correct_rdwm s e :
   eval_schedule e s ≡ eval_schedule e (remove_double_write_mem s).
 Admitted.
@@ -550,4 +550,32 @@ Admitted.
 Lemma optimal_rdwm s e :
   optimal_schedule e s ->
   optimal_schedule e (remove_double_write_mem s).
-Admitted.
+Admitted.*)
+
+(** tentative motif *)
+
+Definition motif P (u : schedule) :=
+  exists u1 u2 u3, u = u1 ++ u2 ++ u3 /\ P u1 u2 u3.
+
+Definition ppt1 (u1 u2 u3 : schedule) :=
+  exists i v, u2 = (Wm,i)::v++(Wm,i)::nil /\ ~ In (Dm,i) v.
+
+Definition motif1 := motif ppt1.
+
+Definition f1 (u2 :schedule) :=
+  match u2 with
+    | nil => nil
+    | a::v => v
+  end.
+
+Lemma fun_no_motif (P : schedule -> schedule -> schedule -> Prop):
+  forall f : schedule -> schedule,
+    (forall u2 u1 u3, P u1 u2 u3 ->
+                      ~ (P u1 (f u2) u3)
+                      /\ (forall e,
+                            eval_schedule e ((f u2) ++ u3) ≡ eval_schedule e (u2++u3))
+                      /\ (forall e,
+                            valid_schedule e (u2++ u3) -> valid_schedule e ((f u2)++u3))
+                      /\ length (f u2) <= length u2)
+    -> forall (u : schedule), exists v, ~ motif P v
+                                          /\ forall e, valid_schedule e u -> valid_schedule e v.
