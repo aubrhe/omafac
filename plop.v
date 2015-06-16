@@ -66,13 +66,6 @@ Proof.
   ]; auto.
 Qed.
 
-Inductive Sousmot : list nat -> list nat -> Prop :=
-| sempty v : Sousmot nil v
-| scons1 x u v : Sousmot u v -> Sousmot u (x::v)
-| scons2 x u v : Sousmot u v -> Sousmot (x::u) (x::v).
-
-
-
 Variable L : nat.
 
 Variable wd : nat.
@@ -151,6 +144,14 @@ Proof.
   replace (cost op) with (cost op+0);repeat rewrite H;auto.
   rewrite<- plus_assoc;f_equal;auto.
   simpl;replace (0) with (0+0);auto;rewrite H;auto.
+Qed.
+
+Lemma cost_app u v :
+  cost_schedule (u++v) = cost_schedule u + cost_schedule v.
+Proof.
+  induction u.
+  auto.
+  simpl;repeat rewrite cost_unit;rewrite<- plus_assoc;f_equal;auto.
 Qed.
 
 Lemma cost_rev : forall u, cost_schedule u = cost_schedule (rev u).
@@ -280,13 +281,6 @@ Inductive valid_schedule : state -> schedule -> Prop :=
 
 Hint Constructors valid_schedule.
 
-(**
-We need to correct the memory thing: 
-we need to have a correct size function, either 
-  (i) we use sets for memory, or
-  (ii) we keep using lists but we need to make sure they do not have duplicated elements.
-*)
-
 Lemma same_size_mem e f :
   e ≡ f -> size_memory e = size_memory f.
 Proof.
@@ -347,6 +341,14 @@ Proof.
   apply (IHs e');cauto.
 Qed.
 
+Lemma eval_app s1 s2 :
+  forall e,
+    eval_schedule e (s1 ++ s2) = eval_schedule (eval_schedule e s2) s1.
+Proof.
+  intros;unfold eval_schedule;rewrite fold_right_app;auto.
+Qed.
+
+(** Décomposition de la validité d'un schedule le long d'une concaténation. *)
 Lemma valid_app s1 s2 : forall e,
   valid_schedule e (s1 ++ s2) <->
   valid_schedule e s2 /\ valid_schedule (eval_schedule e s2) s1.
@@ -364,24 +366,6 @@ Proof.
   unfold eval_schedule in *;rewrite fold_right_app;cauto.
   apply IHs1;auto.
 
-(*induction s1; intro e; split; intro Hvs; auto. 
-SearchAbout (nil ++ _). rewrite app_nil_l. destruct Hvs. simpl in *. assumption.
-rewrite <- app_comm_cons in *. inversion Hvs. 
-discriminate.
-apply IHs1 in H3. destruct H3.
-split.
-SearchAbout ((_::_)++_). 
-apply vcons; auto.
-unfold eval_schedule in *.
-simpl. assumption.
-
-
-rewrite <- app_comm_cons in *. 
-destruct Hvs as (hvs1 & hvs2). inversion hvs1; auto. discriminate. apply vcons. 
-assumption.
-rewrite IHs1. split; auto.
-
- *)
 Qed.
 
 Notation "[ a , b ]" := ((a,b)::nil) (at level 50).
@@ -568,14 +552,125 @@ Definition f1 (u2 :schedule) :=
     | a::v => v
   end.
 
-Lemma fun_no_motif (P : schedule -> schedule -> schedule -> Prop):
+Lemma strong_induction :
+  forall n P,
+    P 0 -> (forall n, (forall m, m<n -> P m) -> P n)
+    -> P n.
+Proof.
+  cut (forall n P, (forall k, k <= 0 -> P k) ->
+                   (forall n, (forall m, m <= n -> P m)
+                              -> (forall m, m<= S n -> P m))
+                ->  (forall m, m<= n -> P m)).
+  intros h n P p0 hind.
+  apply (h n);auto.
+  intros k hk;apply le_n_0_eq in hk as <-;auto.
+  intros m hind2 k hk.
+  apply hind;intros l hl.
+  apply hind2;
+  apply lt_n_Sm_le;apply (lt_le_trans _ k);auto.
+  
+  intros n P p0 hind.
+  induction n.
+  intros;auto.
+  apply hind;auto.
+Qed.
+
+Lemma strong_induction_list {A}  :
+  forall f (P : list A -> Prop), (forall l, f l = 0 -> P l) ->
+            (forall l, (forall m, f m < f l -> P m) -> P l)
+            -> forall l, P l.
+Proof.
+  intros f P h0 hind l; set (ln := f l);
+  assert (f l = ln) as hln; auto.
+  cut (forall l, f l = ln -> P l).
+  intros h1;auto.
+  apply (strong_induction ln).
+  apply h0.
+  intros n hi m hm.
+  apply hind.
+  intros k hk; apply (hi (f k)).
+  rewrite <- hm;auto.
+  auto.
+Qed.
+
+ 
+
+Lemma destruct_motif P :
+  (forall u1 u2 u3, Decidable.decidable (P u1 u2 u3)) ->
+  forall u, (motif P u \/ ~ motif P u).
+Proof.
+Admitted.
+
+Lemma fun_no_motif
+      (P : schedule -> schedule -> schedule -> Prop)
+      (dejafait : schedule -> Prop) :
   forall f : schedule -> schedule,
-    (forall u2 u1 u3, P u1 u2 u3 ->
-                      ~ (P u1 (f u2) u3)
-                      /\ (forall e,
-                            eval_schedule e ((f u2) ++ u3) ≡ eval_schedule e (u2++u3))
-                      /\ (forall e,
-                            valid_schedule e (u2++ u3) -> valid_schedule e ((f u2)++u3))
-                      /\ length (f u2) <= length u2)
-    -> forall (u : schedule), exists v, ~ motif P v
-                                          /\ forall e, valid_schedule e u -> valid_schedule e v.
+  forall mes : schedule -> nat,
+    (forall u1 u2, mes (u1 ++ u2) = mes u1 + mes u2) ->
+    (forall u1 u2 u3, Decidable.decidable (P u1 u2 u3)) ->
+    (forall u2 u1 u3,
+       P u1 u2 u3 ->
+       ~ (P u1 (f u2) u3)
+       /\ mes (f u2) < mes u2
+       /\ cost_schedule (f u2) <= cost_schedule u2
+       /\ (forall e,
+             eval_schedule e ((f u2) ++ u3) ≡ eval_schedule e (u2++u3))
+       /\ (forall e,
+             valid_schedule e (u2++ u3) ->
+             valid_schedule e ((f u2)++u3))
+       /\ (dejafait (u1++(f u2)++u3) -> dejafait (u1++u2++u3)))
+    -> forall (u : schedule),
+       exists v,
+         ~ motif P v
+         /\ (cost_schedule v <= cost_schedule u)
+         /\ (forall e, eval_schedule e u ≡ eval_schedule e v)
+         /\ (forall e, valid_schedule e u -> valid_schedule e v)
+         /\ (dejafait v -> dejafait u).
+Proof.
+  intros f mes hmes hdec h.
+  apply (strong_induction_list mes);
+    intros.
+  case (destruct_motif P hdec l) as [(u1 & u2 & u3 & hl & hp )|mot].
+  apply h in hp as (hp & hm & hc & he & hv & hd).  
+  exfalso.
+  apply (lt_n_0 (mes (f u2))).
+  apply (lt_le_trans _ (mes u2));auto.
+  rewrite <- H;rewrite hl;repeat rewrite hmes.
+  rewrite plus_comm;rewrite <- plus_assoc;
+  auto with arith.
+  exists l;repeat split;auto.
+  case (destruct_motif P hdec l) as [(u1 & u2 & u3 & hl & hp )|mot].
+  apply h in hp as (hp & hm & hc & he & hv & hd).
+  assert (mes (u1++ f u2 ++ u3) < mes l).
+  rewrite hl;repeat rewrite hmes.
+  apply plus_lt_compat_l; apply plus_lt_compat_r;auto.
+  apply H in H0 as (v & hmot & hcost & hev & hval & hdej).
+  rewrite hl in *;
+    exists v; split;[|split;[|split;[|split]]];intros; auto.
+  apply (le_trans _ (cost_schedule (u1 ++ f u2 ++ u3))).
+  auto.
+  repeat rewrite cost_app.
+  apply plus_le_compat_l.
+  apply plus_le_compat_r.
+  auto.
+  apply (equiv_trans (eval_schedule e (u1 ++ f u2 ++ u3))).
+  repeat rewrite (eval_app u1);apply equiv_eval;apply equiv_sym;auto.
+  apply hev.
+  apply hval;rewrite valid_app in H0;
+  destruct H0 as (hu1 & hu2);auto.
+  apply valid_app;split.
+  apply hv;auto.
+  apply (equiv_valid (eval_schedule e (u2 ++ u3)));auto.
+  apply equiv_sym; apply he;auto.
+  exists l; split;[|split;[|split]];auto.
+  intros;apply equiv_refl.
+Qed.
+
+Lemma mot1 :
+forall u, optimal u -> (forall e, valid_schedule e u)
+->
+       exists v,
+         ~ motif ppt1 v
+         /\ (cost_schedule v <= cost_schedule u)
+         /\ (forall e, eval_schedule e u ≡ eval_schedule e v)
+         /\ (forall e, valid_schedule e u -> valid_schedule e v).
