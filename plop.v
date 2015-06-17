@@ -1,6 +1,7 @@
 Require Import List Arith.
 Require Import FSets FSetAVL FSetFacts FSetEqProperties FSetProperties.
 
+
 Ltac blast := solve [ auto |  discriminate | contradiction ].
 Ltac cauto := try blast.
 Lemma discr_rev {A} u (o : A) : ~ u = u++o::nil.
