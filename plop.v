@@ -1,5 +1,15 @@
 Require Import List Arith.
 Require Import FSets FSetAVL FSetFacts FSetEqProperties FSetProperties.
+
+Ltac blast := solve [ auto |  discriminate | contradiction ].
+Ltac cauto := try blast.
+Lemma discr_rev {A} u (o : A) : ~ u = u++o::nil.
+Proof.
+  induction u.
+  apply app_cons_not_nil.
+  intro h;inversion h;cauto.
+Qed.
+
 Module Nat <: OrderedType.
   Definition t := nat.
   Definition eq (a b : t) := a=b.
@@ -56,13 +66,6 @@ Proof.
   ]; auto.
 Qed.
 
-Inductive Sousmot : list nat -> list nat -> Prop :=
-| sempty v : Sousmot nil v
-| scons1 x u v : Sousmot u v -> Sousmot u (x::v)
-| scons2 x u v : Sousmot u v -> Sousmot (x::u) (x::v).
-
-
-
 Variable L : nat.
 
 Variable wd : nat.
@@ -93,6 +96,16 @@ Definition index (oi : op) :=
     | (o,i) => i
   end.
 
+
+Lemma eq_op_dec : forall x y : op, {x = y} + {x <> y}.
+Proof.
+  destruct x as (x,i);destruct x; destruct y as (y,j); destruct y;
+  try (right;intro; blast);
+  case (eq_nat_dec i j) as [ -> | h ];
+    try (left;blast);
+  right;intro h';inversion h';blast.
+Qed.
+
 Definition schedule := list op.
 
 Definition cost (o : op) : nat :=
@@ -112,10 +125,53 @@ Definition optimal s := forall s', cost_schedule s <= cost_schedule s'.
 Lemma opt_leq s1 s2 : optimal s1 -> cost_schedule s2 <= cost_schedule s1 ->
                       optimal s2.
 Proof.
-  intros h1 h2 s; apply (le_trans _ (cost_schedule s1));
-  [ assumption
-  | apply h1].
+  intros h1 h2 s; apply (le_trans _ (cost_schedule s1)); cauto.
 Qed.
+
+
+Lemma cost_unit : forall u op , cost_schedule (op::u) = cost op + cost_schedule u.
+Proof.
+  assert (forall u k l, fold_left (fun (c : nat) (o : op) => c + cost o) u (k + l)=
+                      k + fold_left plus (map cost u) l).
+  induction u;auto.
+  unfold cost_schedule in *;simpl.
+  intros k l;rewrite IHu;auto.
+  rewrite<- plus_assoc;f_equal;auto.
+  rewrite<- IHu.
+  apply eq_trans with (0+fold_left plus (map cost u) (l + cost a));auto;rewrite<- IHu;auto.
+  
+  intros u op; unfold cost_schedule;simpl.
+  replace (cost op) with (cost op+0);repeat rewrite H;auto.
+  rewrite<- plus_assoc;f_equal;auto.
+  simpl;replace (0) with (0+0);auto;rewrite H;auto.
+Qed.
+
+Lemma cost_app u v :
+  cost_schedule (u++v) = cost_schedule u + cost_schedule v.
+Proof.
+  induction u.
+  auto.
+  simpl;repeat rewrite cost_unit;rewrite<- plus_assoc;f_equal;auto.
+Qed.
+
+Lemma cost_rev : forall u, cost_schedule u = cost_schedule (rev u).
+Proof.
+  assert (forall u k, fold_left (fun (c : nat) (o : op) => c + cost o) u k=
+                     fold_left plus (map cost u) k).
+  induction u;auto.
+  unfold cost_schedule in *;simpl.
+  intros k;rewrite IHu;auto.
+
+  assert (forall u k, fold_right (fun y x : nat => x + y) k u =
+                      fold_right plus k u).
+  induction u;intro;simpl;try rewrite IHu;auto with arith.
+  
+  intro u; unfold cost_schedule;repeat rewrite H.
+  rewrite<- fold_left_rev_right.
+  rewrite map_rev.
+  rewrite fold_symmetric;auto with arith.
+Qed.
+
 Definition memory := NSet.t.
 Definition disk := NSet.t.
 Definition buffer := nat.
@@ -168,7 +224,7 @@ Definition bound_memory e :=
 
 Definition rmv := remove (eq_nat_dec).
 
-Definition eval_op e o : state :=
+Definition eval_op o e : state :=
   let i := index o in
   match type o with
     | F => (i+1,get_bottom e,get_memory e,get_disk e)
@@ -182,7 +238,10 @@ Definition eval_op e o : state :=
   end.
   
 Definition eval_schedule e s :=
-  fold_left eval_op s e.
+  fold_right eval_op e s.
+
+Definition useless e o :=
+  eval_op o e ≡ e.
 
 Definition valid_op e o : Prop :=
   let i := index o in
@@ -199,7 +258,7 @@ Definition valid_op e o : Prop :=
 
 Inductive valid_schedule : state -> schedule -> Prop :=
 | vempty e s : s = nil -> valid_schedule e s
-| vcons e o s : valid_op e o -> valid_schedule (eval_op e o) s ->
+| vcons e o s : valid_op (eval_schedule e s) o -> valid_schedule e s ->
                 valid_schedule e (o::s).
 
 Hint Constructors valid_schedule.
@@ -208,30 +267,23 @@ Lemma same_size_mem e f :
   e ≡ f -> size_memory e = size_memory f.
 Proof.
   intros (h1 & h2 & h3 & h4).
-  apply NP.Equal_cardinal. assumption.
+  apply NP.Equal_cardinal;cauto.
 Qed.
 
 Lemma equiv_valid_op e f :
   e ≡ f -> (forall o, valid_op e o -> valid_op f o ).
 Proof.
 intros (h0 & h1 & h2 & h3) o h. unfold valid_op in *. 
-destruct o as (o & i); destruct o; simpl in *.
-
-rewrite <- h0; auto.
-rewrite <- h0; rewrite <- h1; auto.
+destruct o as (o & i); destruct o; simpl in *;
+try rewrite <- h0;try rewrite <- h1;try apply h2;try apply h3;auto.
 destruct h as (h4 & h5c);
-  rewrite <- h0; split;
+  split;
   [|replace (size_memory f) with (size_memory e);
-     [|apply same_size_mem;split;[|split;[|split]]]];assumption.
-rewrite <- h0;auto.
-apply h2;auto.
-apply h3;auto.
-apply h2;auto.
-apply h3;auto.
+     [|apply same_size_mem;split;[|split;[|split]]]];auto.
 Qed.
 
 Lemma equiv_eval_op e f :
-  e ≡ f -> (forall o, eval_op e o ≡ eval_op f o ).
+  e ≡ f -> (forall o, eval_op o e ≡ eval_op o f ).
 Proof.
   intros (h0 & h1& h2 & h3) (o & i); unfold eval_op; destruct o;simpl.
   repeat (split;auto).  
@@ -251,95 +303,132 @@ Lemma valid_prefix e :
 Proof.
 Admitted.
 *)
-
-Lemma equiv_valid e f :
-  e ≡ f -> (forall s, valid_schedule e s -> valid_schedule f s ).
-Proof.
-  cut (forall s e f, e ≡ f -> valid_schedule e s -> valid_schedule f s);
-  [ intros h1 h2 s;apply (h1 _ e);assumption
-  | induction s; intros e' f' h1 h2; 
-    [ apply vempty;reflexivity
-    | inversion h2;
-      [ discriminate
-      | apply vcons;
-        [ apply (equiv_valid_op e')
-        | apply (IHs (eval_op e' a));
-          [ apply equiv_eval_op
-          |
-          ]
-        ]
-      ];assumption
-    ]
-  ].
-(**
-cut (forall s e f, e ≡ f -> valid_schedule e s -> valid_schedule f s).
-intros; auto.
-apply (H _ e); auto.
-induction s; intros; auto.
-apply vcons. 
-cut (valid_op e0 a). 
-apply equiv_valid_op.
-exact H.
-apply valid_prefix in H0; destruct H0; auto.
-apply valid_prefix in H0; destruct H0; auto.
-cut (eval_op e0 a ≡ eval_op f0 a). 
-intro; apply IHs with (eval_op e0 a); auto.
-
-destruct a as (o & i); destruct o; unfold eval_op in *; simpl in *.
-
-destruct H as (h0 & h1 & h2 & h3).
-try rewrite <- h0; try rewrite <- h1.
-repeat split; try simpl; auto. apply h2. apply h2. apply h3. apply h3.
-
-destruct H as (h0 & h1 & h2 & h3).
-try rewrite <- h0; try rewrite <- h1.
-repeat split; try simpl; auto. apply h2. apply h2. apply h3. apply h3.
-
-destruct H as (h0 & h1 & h2 & h3).
-try rewrite <- h0; try rewrite <- h1.
-split. auto. split. auto. split. simpl.
-absurd (exists j: nat, (In j (i::get_memory e0))/\~(In j (i::get_memory f0))).
-intro.
-destruct H. inversion H. inversion H2. subst.
-exfalso; apply H3; constructor. auto. 
-apply H4 in h2.
-
-absurd (same_elts (i :: get_memory e0) (i :: get_memory f0)).
-exists j
-
-*)
-Qed.
 Lemma equiv_eval e f :
   e ≡ f -> (forall s, eval_schedule e s ≡ eval_schedule f s ).
 Proof.
   cut (forall s e f, e ≡ f -> eval_schedule e s ≡ eval_schedule f s);
   [intros h1 h2 s;apply (h1 _ e)
   |induction s; intros e' f' h1;  unfold eval_schedule in * ; simpl;
-   [|apply IHs;apply equiv_eval_op]]; assumption.
+   [|apply equiv_eval_op;apply IHs]]; assumption.
+Qed.
+Lemma equiv_valid e f :
+  e ≡ f -> (forall s, valid_schedule e s -> valid_schedule f s ).
+Proof.
+  cut (forall s e f, e ≡ f -> valid_schedule e s -> valid_schedule f s);
+  [ intros h1 h2 s;apply (h1 _ e)
+   |induction s;
+     [|intros e' f' h1 h2;inversion h2;
+       [|apply vcons;
+          [apply (equiv_valid_op (eval_schedule e' s));[apply equiv_eval|]|]]]];cauto.
+  apply (IHs e');cauto.
 Qed.
 
+Lemma eval_app s1 s2 :
+  forall e,
+    eval_schedule e (s1 ++ s2) = eval_schedule (eval_schedule e s2) s1.
+Proof.
+  intros;unfold eval_schedule;rewrite fold_right_app;auto.
+Qed.
+
+(** Décomposition de la validité d'un schedule le long d'une concaténation. *)
 Lemma valid_app s1 s2 : forall e,
   valid_schedule e (s1 ++ s2) <->
-  valid_schedule e s1 /\ valid_schedule (eval_schedule e s1) s2.
+  valid_schedule e s2 /\ valid_schedule (eval_schedule e s2) s1.
 Proof.
-  induction s1; intro e; split; intro Hvs.
-  simpl in *;split;[apply vempty;reflexivity|]; assumption.
-  
-  rewrite app_nil_l; destruct Hvs; simpl in *; assumption.
+  induction s1;split; intro Hvs.
+  rewrite app_nil_l in *;split;[|apply vempty]; cauto.
+  rewrite app_nil_l; destruct Hvs; simpl in *; cauto.
 
-  rewrite <- app_comm_cons in *; inversion Hvs;
-  [ discriminate
-  | apply IHs1 in H3; destruct H3;split;
-    [ apply vcons
-    | unfold eval_schedule in *;simpl]]; assumption.
+  inversion Hvs;cauto;
+  apply IHs1 in H3 as (h1&h2);split;
+  [|apply vcons;
+     [unfold eval_schedule in *;rewrite<- fold_right_app|]];cauto.
+  destruct Hvs as (h1 & h2);simpl;inversion h2;cauto;apply vcons.
+  unfold eval_schedule in *;rewrite fold_right_app;cauto.
+  apply IHs1;auto.
 
-  rewrite <- app_comm_cons in *;destruct Hvs as (hvs1 & hvs2);
-  inversion hvs1; auto;[discriminate|];apply vcons;
-  [|rewrite IHs1; split];assumption.
 Qed.
 
 Notation "[ a , b ]" := ((a,b)::nil) (at level 50).
 
+Inductive effacement (P : list op -> op -> Prop) :
+  list op -> list op -> Prop :=
+| effnil : effacement P nil nil
+| effcons1 u v x : effacement P u v -> P u x ->
+                   effacement P (x::u) v
+| effcons2 u v x : effacement P u v -> ~ P u x ->
+                   effacement P (x::u) (x::v).
+
+Lemma invert_eff P u v :
+  effacement P u v ->
+  (u = nil /\ v = nil)
+  \/ (exists x u1, u = x::u1 /\ effacement P u1 v /\ P u1 x)
+  \/ (exists x u1 v1, u = x::u1 /\ v=x::v1 /\ effacement P u1 v1 /\ ~P u1 x).
+Proof.
+  intro h; induction h.
+  left;auto.
+  right;left;exists x;exists u;auto.
+  right;right;exists x;exists u;exists v;auto.
+Qed.
+  
+Lemma eff_cost P u v : effacement P u v -> cost_schedule v <= cost_schedule u.
+Proof.
+  intro h;induction h;simpl in *;auto;
+  repeat rewrite cost_unit;auto with arith.
+  rewrite plus_comm; apply le_plus_trans;auto.
+Qed.
+
+Lemma eff_opt P u v : effacement P u v -> optimal u -> optimal v.
+Proof.
+  intros h1 h2;apply eff_cost in h1;apply (opt_leq u);auto.
+Qed.                                   
+
+Lemma eff_eval (P : list op -> op -> Prop) :
+  (forall u x, P u x -> forall e, useless (eval_schedule e u) x) ->
+  forall u v, effacement P u v ->
+              forall e, (eval_schedule e u) ≡ (eval_schedule e v).
+Proof.
+  intros h.
+  induction u;intros;auto.
+  destruct v;auto.
+  simpl;repeat split;auto.
+  apply invert_eff in H as [(h1 & h2)|[(x & u & h1 & h2 & h3)|(x & u & v1 & h1 & h2 & h3 & h4)]];
+  simpl in *;cauto. 
+  apply invert_eff in H as [(h1 & h2)|[(o & u1 & h1 & h2 & h3)|(o & u1 & v1 & h1 & h2 & h3 & h4)]];
+    simpl in *;cauto.
+  inversion h1.
+  apply (equiv_trans ( eval_schedule e u1 )).
+  unfold useless  in h;  apply (h _ _ );cauto.
+  rewrite <- H1 in *;apply IHu;auto.
+  rewrite  h2 in *;inversion h1;rewrite <- H1 in *;  simpl;apply equiv_eval_op;
+  apply IHu;auto.
+Qed.                          
+
+Lemma eff_valid (P : list op -> op -> Prop) :
+  (forall u x, P u x -> forall e, useless (eval_schedule e u) x) ->
+  forall u v, effacement P u v -> 
+              forall e, (valid_schedule e u) -> (valid_schedule e v).
+Proof.
+  intros h.
+  induction u;intros;auto.
+  destruct v;auto.
+  simpl;repeat split;auto.
+  apply invert_eff in H as [(h1 & h2)|[(x & u & h1 & h2 & h3)|(x & u & v1 & h1 & h2 & h3 & h4)]];
+  simpl in *;cauto. 
+  apply invert_eff in H as [(h1 & h2)|[(o & u1 & h1 & h2 & h3)|(o & u1 & v1 & h1 & h2 & h3 & h4)]];
+    simpl in *;cauto.
+  inversion h1;  apply IHu; rewrite H2;auto.
+  rewrite H2 in *;inversion H0;cauto.
+
+  inversion H0;cauto.
+  inversion h1; rewrite <- H7 in *;rewrite H6 in *; clear H H1 H6 H7 H2; rewrite h2 in *;apply vcons.
+  apply (equiv_valid_op (eval_schedule e u));cauto.
+  apply (eff_eval P);cauto.
+
+  apply IHu;cauto.
+Qed.
+
+(*
 Definition no_double_write_mem_i s (i : nat) :=
   ~ (exists s1 s2 s3, s = s1 ++ [Wm,i] ++ s2 ++ [Wm,i] ++ s3
                       /\ ~ In (Dm,i) s2).
@@ -354,305 +443,67 @@ Fixpoint remove_write_mem_i s (i : nat) :=
                    then remove_write_mem_i s i
                    else (Wm,j)::(remove_write_mem_i s i)
     | oi::s => oi::(remove_write_mem_i s i)
-  end.
-    
-Fixpoint remove_double_write_mem s :=
+  end.*)
+
+  
+Lemma ndw_eff_ex :
+   forall s : list op, exists s',
+                         effacement
+                           (fun u x => exists i, x = (Wm,i)
+                                                   /\ exists u1 u2, u = u1 ++ [Wm,i] ++ u2
+                                                                      /\ ~ In (Dm,i) u1) 
+                           s s'.
+Proof.
+  induction s.
+  exists nil;apply effnil.
+  destruct IHs as (s' & IHs).
+  set (op:=a);assert (op=a) as hop;auto.
+  destruct a as (o,k); destruct o; simpl;
+  try (exists (op::s');rewrite hop in *;
+              apply effcons2;
+              try intros (i & hx & hu);blast).
+  assert  (forall u0,
+             (exists u1 u2, u0 = u1 ++ (Wm, k) :: u2 /\ ~ In (Dm, k) u1)\/
+             ~(exists u1 u2, u0 = u1 ++ (Wm, k) :: u2 /\ ~ In (Dm, k) u1)).
+  induction u0.
+  right;intros (u1 & u2 & h1 & h2); apply app_cons_not_nil in h1;auto.
+  destruct IHu0 as [(u1 & u2 & h1 & h2)| h].
+  case (eq_op_dec (Dm,k) a) as [<-|h].
+  right;intros (u3 & u4 & h3 & h4).
+  destruct u3;simpl in *;cauto.
+  inversion h3.
+  contradict h4;left;auto.
+  left;exists (a::u1);exists u2;split;simpl.
+  f_equal;auto.
+  intros [ha|hu];[symmetry in ha|];cauto.
+  case (eq_op_dec (Wm,k) a) as [<-|ha].
+  left;exists nil;exists u0;split;auto.
+  right;intros (u3 & u4 & h3 & h4).
+  apply h.
+  destruct u3.
+  contradict ha;simpl in *;inversion h3;auto.
+  exists u3; exists u4.
+  inversion h3;split;[|intro;apply h4;right];auto.
+  
+  case (eq_op_dec (Wm,k) op) as [<-|h];
+    [case (H s) as [(u1 & u2 & h1 & h2)|hp]|];
+    [exists s'|exists ((Wm,k)::s')  |exists (op::s')];
+  [apply effcons1;[|exists k;split];auto;
+   exists u1;exists u2;auto| |];
+  apply effcons2;auto.
+  intros (i & h & hp');inversion h.
+  rewrite H1 in *;cauto.
+Qed. 
+  
+(*Fixpoint remove_double_write_mem s :=
   match s with
     | nil => nil
     | (Wm,i)::s =>
       (Wm,i)::(remove_write_mem_i (remove_double_write_mem s) i)
     | oi::s => oi::(remove_double_write_mem s)
-  end.
+  end.*)
 
-Lemma invert_rwmi s :
-  forall s1 s2 i,
-    remove_write_mem_i s i = s1 ++ s2 ->
-    (*~ In (Dm,i) s1 ->*)
-    (exists s3 s4, s=s3++s4 /\
-                     remove_write_mem_i s3 i = s1 /\
-                     remove_write_mem_i s4 i = s2)
-    \/ exists s3, s=s3++s2 /\
-                     remove_write_mem_i s3 i = s1.
-(*question: what good is this lemma?*)
-Proof.
-  induction s; intros s1 s2 i h; simpl in * .
-  destruct s1;destruct s2;
-  [simpl in *;left;exists nil; exists nil; repeat split;simpl
-  |contradict h;apply app_cons_not_nil
-  |simpl in h;discriminate
-  |simpl in h;discriminate].
-  set (x:=a);assert (x=a) as hx; [auto|rewrite hx in *].
-  destruct a as (o,k); destruct o; simpl in h;
-  try
-    (destruct s1;simpl in h;
-     [destruct s2;[discriminate
-                  |inversion h;left;exists nil; exists (x::s);
-                   repeat split;simpl]
-     |inversion h;
-       apply IHs in H1 as [(s3 & s4 & hs & hs3 & hs4)|(s3 & hs & hs3)]];
-     [left;exists (x::s3); exists s4;repeat split;simpl;
-      [f_equal|f_equal|]
-     |right;exists (x::s3); split;simpl;
-      [f_equal|f_equal]];assumption).
-  case (eq_nat_dec i k) as [-> |].
-  rewrite <- beq_nat_refl in h;
-    apply IHs in h as [(s3 & s4 & hs & hs3 & hs4)|(s3 & hs & hs3)];
-    [left;exists (x::s3); exists s4;repeat split;simpl;
-     [f_equal|rewrite <- beq_nat_refl|]
-    |right;exists (x::s3); split;simpl;
-     [f_equal|rewrite <- beq_nat_refl]];assumption.
-
-  replace (beq_nat i k) with false in h;
-    [|symmetry;apply beq_nat_false_iff;assumption].
-  destruct s1;simpl in h.
-  destruct s2;[discriminate
-                    |inversion h;left;exists nil; exists (x::s);
-                     repeat split;simpl];
-  replace (beq_nat i k) with false;
-    [|symmetry;apply beq_nat_false_iff;assumption];reflexivity.
-  inversion h.
-  apply IHs in H1 as [(s3 & s4 & hs & hs3 & hs4)|(s3 & hs & hs3)];
-    [left|right].
-  exists (x::s3);exists s4;repeat split;simpl;
-  [f_equal
-  |replace (beq_nat i k) with false;
-    [f_equal
-    |symmetry;apply beq_nat_false_iff]|];
-  assumption.
-  exists (x::s3); split;simpl;
-  [f_equal
-  |replace (beq_nat i k) with false;
-    [f_equal
-    |symmetry;apply beq_nat_false_iff]];
-  assumption.
-  case (eq_nat_dec i k) as [-> |].
-  rewrite <- beq_nat_refl in h.
-  destruct s1.
-  right; exists nil;split;[assumption|reflexivity].
-  right; exists (x::s1); split;[|rewrite hx; simpl;rewrite <- beq_nat_refl]; simpl in *;inversion h;f_equal.
-  replace (beq_nat i k) with false in h;
-    [|symmetry;apply beq_nat_false_iff;assumption].
-  destruct s1;simpl in h.
-  destruct s2;[discriminate
-                    |inversion h;left;exists nil; exists (x::s);
-                     repeat split;simpl];
-  replace (beq_nat i k) with false;
-    [|symmetry;apply beq_nat_false_iff;assumption];reflexivity.
-  inversion h.
-  apply IHs in H1 as [(s3 & s4 & hs & hs3 & hs4)|(s3 & hs & hs3)];
-    [left|right].
-  exists (x::s3);exists s4;repeat split;simpl;
-  [f_equal
-  |replace (beq_nat i k) with false;
-    [f_equal
-    |symmetry;apply beq_nat_false_iff]|];
-  assumption.
-  exists (x::s3); split;simpl;
-  [f_equal
-  |replace (beq_nat i k) with false;
-    [f_equal
-    |symmetry;apply beq_nat_false_iff]];
-  assumption.
-
-Qed.
-
-
-Axiom excluded_middle : forall A : Prop, A \/ ~A.
-
-Lemma no_dwm_rdwmi s :
-  forall i j,
-    no_double_write_mem_i s i ->
-    no_double_write_mem_i (remove_write_mem_i s j) i.
-Proof.
-(* -> useless this lemma?
-  assert (forall i s1 s2,remove_write_mem_i s1 i <> (Wm,i)::s2) as lem1.
-  induction s1. intros s2 h.
-  simpl in h; discriminate.
-  destruct a as (o,k); destruct o; try discriminate.
-case (eq_nat_dec i k) as [ -> | ].
-simpl. rewrite <- beq_nat_refl in *. apply IHs1.
-simpl. replace (beq_nat i k) with false in *.
-intro. injection. intros. rewrite H1 in n; auto.
-SearchAbout beq_nat.
-symmetry; apply beq_nat_false_iff; auto.
-simpl.
-case (eq_nat_dec i k) as [ -> | ];
-[rewrite <- beq_nat_refl in *| replace (beq_nat i k) with false in *].
-congruence. congruence. symmetry; apply beq_nat_false_iff; auto.
-*)
-
-intros.
-induction s.
-simpl;auto.
-destruct a as (o,k); destruct o; try discriminate;simpl.
-unfold no_double_write_mem_i.
-intro.
-destruct H0  as (s1&s2&s3&H0l&H0r).
-destruct s1. 
-  simpl in H0l; discriminate. 
-  inversion H0l; rewrite <- H1 in H0l.
-  unfold no_double_write_mem_i in H.
-  unfold remove_write_mem_i in H2.
 (*
-destruct (excluded_middle (exists s1 s2 s3, 
-    ((F,k)::remove_write_mem_i s j)= s1 ++ [Wm,i] ++ s2 ++ [Wm,i] ++ s3)) 
-  as [H1|H2].
-destruct H1 as (s1&s2&s3&h1).
-destruct s1. simpl in h1. discriminate. inversion h1. rewrite <- H1 in h1.
-rewrite h1. simpl. 
-*)
-
-  case (eq_nat_dec i k) as [ -> | ];
-  [rewrite <- beq_nat_refl in *
-  |replace (beq_nat i k) with false in *;
-    [|symmetry;apply beq_nat_false_iff;assumption]];
-  inversion h;[apply (IHs1 s2);assumption
-              |symmetry in H0;contradiction].  
-  case (eq_nat_dec i k) as [ -> | ];
-  [rewrite <- beq_nat_refl in *
-  |replace (beq_nat i k) with false in *;
-    [|symmetry;apply beq_nat_false_iff;assumption]];
-  discriminate.
-
-  assert (forall op k s1,
-           (remove_write_mem_i s1 k)= ->
-            In op s1) 
-    as lem2.
-  assert (forall op k s1,
-            In op (remove_write_mem_i s1 k) ->
-            In op s1) 
-    as lem2.
-  intros op i;induction s1;intro h;auto;
-  destruct a as (o,l); destruct o; simpl in *;
-  try (simpl;case (eq_nat_dec i l) as [ -> | ];
-    try (rewrite <- beq_nat_refl in *);
-    try (replace (beq_nat i l) with false in *);
-    try (symmetry;apply beq_nat_false_iff;assumption));
-  try case h as [<-|h];
-  try (left;reflexivity);
-  try (right;assumption);
-  try (right;apply IHs1;assumption).
-
-(*  assert (forall i k s1,
-             In (Dm,i) s1 ->
-             In (Dm,i)(remove_write_mem_i s1 k))
-    as lem3.*)
-  intros i j hs (s1 & s2 & s3 & h1 & h3).
-  apply invert_rwmi in h1 
-    as [(s4 & s5 & hs' & hs4 & hs5) | (s4 & hs' & hs4)].
-  apply invert_rwmi in hs5
-    as [(s6 & s7 & -> & hs6 & hs7) | (s6 & -> & hs6)].
-  apply invert_rwmi in hs7
-    as [(s8 & s9 & -> & hs8 & hs9) | (s8 & -> & hs8)].
-  apply invert_rwmi in hs9
-    as [(s10 & s11 & -> & hs10 & hs11) | (s10 & -> & hs10)].
-  
-  replace s6 with ([Wm,i]) in *.
-  replace s10 with ([Wm,i]) in *.
-
-  apply hs;exists s4; exists s8; exists s11.
-  split;[assumption|rewrite (lem2 _ j); rewrite hs8;assumption].
-  destruct s10.
-  simpl in hs10;discriminate.
-  
-  destruct s6;try (simpl in *;discriminate).
-  
-  
-  destruct s5;try (simpl in *;discriminate).
-  destruct p as (o,k); destruct o; simpl in hs5; try
-                                                   discriminate.
-  case (eq_nat_dec j k) as [-> | ]; 
-  [rewrite <- beq_nat_refl in *
-  |replace (beq_nat j k) with false in *;
-    [inversion hs5|symmetry;apply beq_nat_false_iff;assumption]].
-  replace ((Wm, i) :: s2 ++ (Wm, i) :: s3) with
-  (((Wm, i) :: s2) ++ (Wm, i) :: s3) in hs5;[|simpl;reflexivity]. 
-  apply invert_rwmi in hs5 
-    as [(s6 & s7 & -> & hs6 & hs7) | (s6 & -> & hs6)];
-  destruct s6;try (simpl in *;discriminate).
-  destruct p as (o,l); destruct o; simpl in hs6; try
-                                                   discriminate.
-  case (eq_nat_dec k l) as [ -> | h];
-  [rewrite <- beq_nat_refl in *
-  |replace (beq_nat k l) with false in *;
-    [inversion hs6|symmetry;apply beq_nat_false_iff;assumption]].
-
-  apply hs; exists s4;exists nil; exists (s6 ++ s7).
-split;simpl in *;[|].
-
-(*  induction s;
-  intros i j h  (s1 & s2 & s3 & h1 & h3).
-  apply (app_cons_not_nil s1 (s2 ++ (Wm, i) :: s3) (Wm,i));
-    simpl in h1;assumption.
- apply invert_rwmi in h1 as [(s4 & s5 & hs & hs1 & hs2)
-                            | (s4 & hs & hs1)].*)
-  
-  intros i j h(*  (s1 & s2 & s3 & h1 & h3).
-  apply h*) .
-  induction s; intros (s1 & s2 & s3 & h1 & h3).
-  apply (app_cons_not_nil s1 (s2 ++ (Wm, i) :: s3) (Wm,i));
-    unfold no_double_write_mem_i in *; simpl in h1; auto.
-  assert (no_double_write_mem_i s i) as hs;
-    [intros (ss1 & ss2 & ss3 & hh1 & hh3);apply h;
-     exists (a::ss1);exists ss2;exists ss3;split;
-     [simpl;f_equal|];assumption| ].
-  
-  destruct a as (o,k); destruct o; simpl in h1;
-  try (apply IHs in hs;destruct s1 as [|(o & l)];
-       [discriminate|];
-       simpl in h1;inversion h1;apply hs;
-       exists s1;exists s2;exists s3;split;assumption).
-  case (eq_nat_dec j k) as [-> |].
-  rewrite <- beq_nat_refl in h1.
-  apply IHs in hs; apply hs; exists s1;exists s2;exists s3;split;
-  assumption.
-  replace (beq_nat j k) with false in h1;
-    [|symmetry;apply beq_nat_false_iff;assumption].
-  destruct s1 as [|(o & l)].
-  simpl in h1.
-  inversion h1.
-  apply invert_rwmi in H1 as [(s4 & s5 & hss & hs1 & hs2)
-                            | (s4 & hss & hs1)].
-  apply hs; exists nil;exists (remove_write_mem_i s2 j);exists (remove_write_mem_i s3 j).
-  split; [simpl|].
-  apply hs; exists nil;exists s2;exists s3.
-
-  [discriminate|];
-       simpl in h1;inversion h1;apply hs;
-       exists s1;exists s2;exists s3;split;assumption.
-Qed.
-  
-Lemma no_dwm_rdwm s :
-  forall i,
-    no_double_write_mem_i (remove_double_write_mem s) i.
-Proof.
-  induction s; unfold no_double_write_mem_i in *.
-  intros i (s1 & s2 & s3 & h1 & h3);simpl in h1.
-  apply (app_cons_not_nil s1 (s2 ++ (Wm, i) :: s3) (Wm,i)); auto.
-  intros i (s1 & s2 & s3 & h1 & h3).
-  destruct a as (o,j); destruct o; simpl in h1;
-  try 
-    (destruct s1 as [|(o & k)];
-     [discriminate|destruct o;simpl in h1;try discriminate;inversion h1];
-     apply (IHs i);exists s1; exists s2; exists s3;split;auto).
-  case (eq_nat_dec i j) as [<-| h].
-  Focus 2.
-  destruct s1 as [|(o & k)];  simpl in h1; inversion h1.
-  apply h; symmetry;assumption.
-  apply (IHs i);exists s1; exists s2; exists s3;split;auto.
-
-  [ 
-       |destruct o;simpl in h1;try discriminate;inversion h1];
-       apply (IHs i);exists s1; exists s2; exists s3;split;auto.
-
-  [|destruct s1 as [|(o & k)];  
-       [simpl in h1; inversion h1; apply h; symmetry;assumption
-       |destruct o;simpl in h1;try discriminate;inversion h1];
-       apply (IHs i);exists s1; exists s2; exists s3;split;auto].
-
-Qed.
-
-
 Lemma correct_rdwm s e :
   eval_schedule e s ≡ eval_schedule e (remove_double_write_mem s).
 Admitted.
@@ -663,4 +514,143 @@ Admitted.
 Lemma optimal_rdwm s e :
   optimal_schedule e s ->
   optimal_schedule e (remove_double_write_mem s).
+Admitted.*)
+
+(** tentative motif *)
+
+Definition motif P (u : schedule) :=
+  exists u1 u2 u3, u = u1 ++ u2 ++ u3 /\ P u1 u2 u3.
+
+Definition ppt1 (u1 u2 u3 : schedule) :=
+  exists i v, u2 = (Wm,i)::v++(Wm,i)::nil /\ ~ In (Dm,i) v.
+
+Definition motif1 := motif ppt1.
+
+Definition f1 (u2 :schedule) :=
+  match u2 with
+    | nil => nil
+    | a::v => v
+  end.
+
+Lemma strong_induction :
+  forall n P,
+    P 0 -> (forall n, (forall m, m<n -> P m) -> P n)
+    -> P n.
+Proof.
+  cut (forall n P, (forall k, k <= 0 -> P k) ->
+                   (forall n, (forall m, m <= n -> P m)
+                              -> (forall m, m<= S n -> P m))
+                ->  (forall m, m<= n -> P m)).
+  intros h n P p0 hind.
+  apply (h n);auto.
+  intros k hk;apply le_n_0_eq in hk as <-;auto.
+  intros m hind2 k hk.
+  apply hind;intros l hl.
+  apply hind2;
+  apply lt_n_Sm_le;apply (lt_le_trans _ k);auto.
+  
+  intros n P p0 hind.
+  induction n.
+  intros;auto.
+  apply hind;auto.
+Qed.
+
+Lemma strong_induction_list {A}  :
+  forall f (P : list A -> Prop), (forall l, f l = 0 -> P l) ->
+            (forall l, (forall m, f m < f l -> P m) -> P l)
+            -> forall l, P l.
+Proof.
+  intros f P h0 hind l; set (ln := f l);
+  assert (f l = ln) as hln; auto.
+  cut (forall l, f l = ln -> P l).
+  intros h1;auto.
+  apply (strong_induction ln).
+  apply h0.
+  intros n hi m hm.
+  apply hind.
+  intros k hk; apply (hi (f k)).
+  rewrite <- hm;auto.
+  auto.
+Qed.
+
+ 
+
+Lemma destruct_motif P :
+  (forall u1 u2 u3, Decidable.decidable (P u1 u2 u3)) ->
+  forall u, (motif P u \/ ~ motif P u).
+Proof.
 Admitted.
+
+Lemma fun_no_motif
+      (P : schedule -> schedule -> schedule -> Prop)
+      (dejafait : schedule -> Prop) :
+  forall f : schedule -> schedule,
+  forall mes : schedule -> nat,
+    (forall u1 u2, mes (u1 ++ u2) = mes u1 + mes u2) ->
+    (forall u1 u2 u3, Decidable.decidable (P u1 u2 u3)) ->
+    (forall u2 u1 u3,
+       P u1 u2 u3 ->
+       ~ (P u1 (f u2) u3)
+       /\ mes (f u2) < mes u2
+       /\ cost_schedule (f u2) <= cost_schedule u2
+       /\ (forall e,
+             eval_schedule e ((f u2) ++ u3) ≡ eval_schedule e (u2++u3))
+       /\ (forall e,
+             valid_schedule e (u2++ u3) ->
+             valid_schedule e ((f u2)++u3))
+       /\ (dejafait (u1++(f u2)++u3) -> dejafait (u1++u2++u3)))
+    -> forall (u : schedule),
+       exists v,
+         ~ motif P v
+         /\ (cost_schedule v <= cost_schedule u)
+         /\ (forall e, eval_schedule e u ≡ eval_schedule e v)
+         /\ (forall e, valid_schedule e u -> valid_schedule e v)
+         /\ (dejafait v -> dejafait u).
+Proof.
+  intros f mes hmes hdec h.
+  apply (strong_induction_list mes);
+    intros.
+  case (destruct_motif P hdec l) as [(u1 & u2 & u3 & hl & hp )|mot].
+  apply h in hp as (hp & hm & hc & he & hv & hd).  
+  exfalso.
+  apply (lt_n_0 (mes (f u2))).
+  apply (lt_le_trans _ (mes u2));auto.
+  rewrite <- H;rewrite hl;repeat rewrite hmes.
+  rewrite plus_comm;rewrite <- plus_assoc;
+  auto with arith.
+  exists l;repeat split;auto.
+  case (destruct_motif P hdec l) as [(u1 & u2 & u3 & hl & hp )|mot].
+  apply h in hp as (hp & hm & hc & he & hv & hd).
+  assert (mes (u1++ f u2 ++ u3) < mes l).
+  rewrite hl;repeat rewrite hmes.
+  apply plus_lt_compat_l; apply plus_lt_compat_r;auto.
+  apply H in H0 as (v & hmot & hcost & hev & hval & hdej).
+  rewrite hl in *;
+    exists v; split;[|split;[|split;[|split]]];intros; auto.
+  apply (le_trans _ (cost_schedule (u1 ++ f u2 ++ u3))).
+  auto.
+  repeat rewrite cost_app.
+  apply plus_le_compat_l.
+  apply plus_le_compat_r.
+  auto.
+  apply (equiv_trans (eval_schedule e (u1 ++ f u2 ++ u3))).
+  repeat rewrite (eval_app u1);apply equiv_eval;apply equiv_sym;auto.
+  apply hev.
+  apply hval;rewrite valid_app in H0;
+  destruct H0 as (hu1 & hu2);auto.
+  apply valid_app;split.
+  apply hv;auto.
+  apply (equiv_valid (eval_schedule e (u2 ++ u3)));auto.
+  apply equiv_sym; apply he;auto.
+  exists l; split;[|split;[|split]];auto.
+  intros;apply equiv_refl.
+Qed.
+
+Lemma mot1 :
+forall u, optimal u -> (forall e, valid_schedule e u)
+->
+       exists v,
+         ~ motif ppt1 v
+         /\ (cost_schedule v <= cost_schedule u)
+         /\ (forall e, eval_schedule e u ≡ eval_schedule e v)
+         /\ (forall e, valid_schedule e u -> valid_schedule e v).
