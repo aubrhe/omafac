@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link href="coqdoc.css" rel="stylesheet" type="text/css"/>
+<title>Tools</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library Tools</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This module contains a set of basic definitions
+    that will be of use but do not depend upon the  
+    specifics of the problem at hand.               <hr/>
+ 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Lists.List.html#"><span class="id" type="library">List</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Arith.Arith.html#"><span class="id" type="library">Arith</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSets.html#"><span class="id" type="library">FSets</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetAVL.html#"><span class="id" type="library">FSetAVL</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetFacts.html#"><span class="id" type="library">FSetFacts</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetEqProperties.html#"><span class="id" type="library">FSetEqProperties</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetProperties.html#"><span class="id" type="library">FSetProperties</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab1"></a><h1 class="section">Tactics</h1>
+
+</div>
+<div class="code">
+<span class="id" type="keyword">Ltac</span> <span class="id" type="var">blast</span> := <span class="id" type="tactic">solve</span> [ <span class="id" type="tactic">auto</span> |  <span class="id" type="tactic">discriminate</span> | <span class="id" type="var">contradiction</span> ].<br/>
+<span class="id" type="keyword">Ltac</span> <span class="id" type="var">cauto</span> := <span class="id" type="tactic">try</span> <span class="id" type="var">blast</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab2"></a><h1 class="section">Sets</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Module</span> <a name="Nat"><span class="id" type="module">Nat</span></a> &lt;: <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Structures.OrderedType.html#OrderedType"><span class="id" type="module">OrderedType</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Nat.t"><span class="id" type="definition">t</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Nat.eq"><span class="id" type="definition">eq</span></a> (<span class="id" type="var">a</span> <span class="id" type="var">b</span> : <a class="idref" href="Tools.html#Nat.t"><span class="id" type="definition">t</span></a>) := <a class="idref" href="Tools.html#a"><span class="id" type="variable">a</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a><a class="idref" href="Tools.html#b"><span class="id" type="variable">b</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Nat.lt"><span class="id" type="definition">lt</span></a> (<span class="id" type="var">a</span> <span class="id" type="var">b</span> : <a class="idref" href="Tools.html#Nat.t"><span class="id" type="definition">t</span></a>) := <a class="idref" href="Tools.html#a"><span class="id" type="variable">a</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'<'_x"><span class="id" type="notation">&lt;</span></a><a class="idref" href="Tools.html#b"><span class="id" type="variable">b</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="Nat.eq_refl"><span class="id" type="lemma">eq_refl</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">x</span> : <a class="idref" href="Tools.html#Nat.t"><span class="id" type="definition">t</span></a>, <a class="idref" href="Tools.html#Nat.eq"><span class="id" type="definition">eq</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="Nat.eq_sym"><span class="id" type="lemma">eq_sym</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">x</span> <span class="id" type="var">y</span> : <a class="idref" href="Tools.html#Nat.t"><span class="id" type="definition">t</span></a>, <a class="idref" href="Tools.html#Nat.eq"><span class="id" type="definition">eq</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#y"><span class="id" type="variable">y</span></a> → <a class="idref" href="Tools.html#Nat.eq"><span class="id" type="definition">eq</span></a> <a class="idref" href="Tools.html#y"><span class="id" type="variable">y</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Lemma</span> <a name="Nat.eq_trans"><span class="id" type="lemma">eq_trans</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">x</span> <span class="id" type="var">y</span> <span class="id" type="var">z</span> : <a class="idref" href="Tools.html#Nat.t"><span class="id" type="definition">t</span></a>, <a class="idref" href="Tools.html#Nat.eq"><span class="id" type="definition">eq</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#y"><span class="id" type="variable">y</span></a> → <a class="idref" href="Tools.html#Nat.eq"><span class="id" type="definition">eq</span></a> <a class="idref" href="Tools.html#y"><span class="id" type="variable">y</span></a> <a class="idref" href="Tools.html#z"><span class="id" type="variable">z</span></a> → <a class="idref" href="Tools.html#Nat.eq"><span class="id" type="definition">eq</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#z"><span class="id" type="variable">z</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Nat.lt_trans"><span class="id" type="definition">lt_trans</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">x</span> <span class="id" type="var">y</span> <span class="id" type="var">z</span> : <a class="idref" href="Tools.html#Nat.t"><span class="id" type="definition">t</span></a>, <a class="idref" href="Tools.html#Nat.lt"><span class="id" type="definition">lt</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#y"><span class="id" type="variable">y</span></a> → <a class="idref" href="Tools.html#Nat.lt"><span class="id" type="definition">lt</span></a> <a class="idref" href="Tools.html#y"><span class="id" type="variable">y</span></a> <a class="idref" href="Tools.html#z"><span class="id" type="variable">z</span></a> → <a class="idref" href="Tools.html#Nat.lt"><span class="id" type="definition">lt</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#z"><span class="id" type="variable">z</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Arith.Lt.html#lt_trans"><span class="id" type="lemma">lt_trans</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Nat.lt_not_eq"><span class="id" type="definition">lt_not_eq</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">x</span> <span class="id" type="var">y</span> : <a class="idref" href="Tools.html#Nat.t"><span class="id" type="definition">t</span></a>, <a class="idref" href="Tools.html#Nat.lt"><span class="id" type="definition">lt</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#y"><span class="id" type="variable">y</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'~'_x"><span class="id" type="notation">¬</span></a> <a class="idref" href="Tools.html#Nat.eq"><span class="id" type="definition">eq</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#y"><span class="id" type="variable">y</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Numbers.Natural.Peano.NPeano.html#Nat.lt_neq"><span class="id" type="lemma">NPeano.Nat.lt_neq</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Nat.compare"><span class="id" type="definition">compare</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">x</span> <span class="id" type="var">y</span> : <a class="idref" href="Tools.html#Nat.t"><span class="id" type="definition">t</span></a>, <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Structures.OrderedType.html#Compare"><span class="id" type="inductive">Compare</span></a> <a class="idref" href="Tools.html#Nat.lt"><span class="id" type="definition">lt</span></a> <a class="idref" href="Tools.html#Nat.eq"><span class="id" type="definition">eq</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#y"><span class="id" type="variable">y</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">SearchAbout</span> (<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">{</span></a> <span class="id" type="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">}</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">+</span></a>  <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">{</span></a> <span class="id" type="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">}</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:x_'+'_'{'_x_'}'"><span class="id" type="notation">+</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:x_'+'_'{'_x_'}'"><span class="id" type="notation">{</span></a> <span class="id" type="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:x_'+'_'{'_x_'}'"><span class="id" type="notation">}</span></a> ).<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Qed</span>.<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">Definition</span> <a name="Nat.eq_dec"><span class="id" type="definition">eq_dec</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Arith.Peano_dec.html#eq_nat_dec"><span class="id" type="lemma">eq_nat_dec</span></a>.<br/>
+<span class="id" type="keyword">End</span> <a class="idref" href="Tools.html#Nat"><span class="id" type="module">Nat</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Module</span> <a name="NSet"><span class="id" type="module">NSet</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetAVL.html#Make"><span class="id" type="module">FSetAVL.Make</span></a>(<a class="idref" href="Tools.html#Nat"><span class="id" type="module">Nat</span></a>).<br/>
+<span class="id" type="keyword">Module</span> <a name="NF"><span class="id" type="module">NF</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetFacts.html#Facts"><span class="id" type="module">FSetFacts.Facts</span></a> <a class="idref" href="Tools.html#NSet"><span class="id" type="module">NSet</span></a>.<br/>
+<span class="id" type="keyword">Module</span> <a name="NP"><span class="id" type="module">NP</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetProperties.html#Properties"><span class="id" type="module">FSetProperties.Properties</span></a> <a class="idref" href="Tools.html#NSet"><span class="id" type="module">NSet</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="Equal_add"><span class="id" type="lemma">Equal_add</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">x</span> <span class="id" type="var">s</span> <span class="id" type="var">s'</span>, <a class="idref" href="Tools.html#NSet.eq"><span class="id" type="definition">NSet.eq</span></a> <a class="idref" href="Tools.html#s"><span class="id" type="variable">s</span></a> <a class="idref" href="Tools.html#s'"><span class="id" type="variable">s'</span></a> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Tools.html#NSet.eq"><span class="id" type="definition">NSet.eq</span></a> (<a class="idref" href="Tools.html#NSet.add"><span class="id" type="definition">NSet.add</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#s"><span class="id" type="variable">s</span></a>) (<a class="idref" href="Tools.html#NSet.add"><span class="id" type="definition">NSet.add</span></a> <a class="idref" href="Tools.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="Tools.html#s'"><span class="id" type="variable">s'</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab3"></a><h1 class="section">Lists</h1>
+
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="strong_induction"><span class="id" type="lemma">strong_induction</span></a> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">∀</span> <span class="id" type="var">n</span> <span class="id" type="var">P</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> 0 → (<span class="id" type="keyword">∀</span> <span class="id" type="var">n</span>, (<span class="id" type="keyword">∀</span> <span class="id" type="var">m</span>, <a class="idref" href="Tools.html#m"><span class="id" type="variable">m</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'<'_x"><span class="id" type="notation">&lt;</span></a><a class="idref" href="Tools.html#n"><span class="id" type="variable">n</span></a> → <a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Tools.html#m"><span class="id" type="variable">m</span></a>) → <a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Tools.html#n"><span class="id" type="variable">n</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ <a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Tools.html#n"><span class="id" type="variable">n</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="strong_induction_list"><span class="id" type="lemma">strong_induction_list</span></a> {<span class="id" type="var">A</span>}  :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">∀</span> <span class="id" type="var">f</span> (<span class="id" type="var">P</span> : <a class="idref" href="Tools.html#A"><span class="id" type="variable">A</span></a> → <span class="id" type="keyword">Prop</span>), (<span class="id" type="keyword">∀</span> <span class="id" type="var">l</span>, <a class="idref" href="Tools.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Tools.html#l"><span class="id" type="variable">l</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> 0 → <a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Tools.html#l"><span class="id" type="variable">l</span></a>) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" type="keyword">∀</span> <span class="id" type="var">l</span>, (<span class="id" type="keyword">∀</span> <span class="id" type="var">m</span>, <a class="idref" href="Tools.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Tools.html#m"><span class="id" type="variable">m</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'<'_x"><span class="id" type="notation">&lt;</span></a> <a class="idref" href="Tools.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Tools.html#l"><span class="id" type="variable">l</span></a> → <a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Tools.html#m"><span class="id" type="variable">m</span></a>) → <a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Tools.html#l"><span class="id" type="variable">l</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <span class="id" type="keyword">∀</span> <span class="id" type="var">l</span>, <a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Tools.html#l"><span class="id" type="variable">l</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="app_prop_dec"><span class="id" type="lemma">app_prop_dec</span></a> {<span class="id" type="var">A</span>} :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">∀</span> (<span class="id" type="var">u</span> : <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#list"><span class="id" type="inductive">list</span></a> <a class="idref" href="Tools.html#A"><span class="id" type="variable">A</span></a>) <span class="id" type="var">P</span>,<br/>
+&nbsp;&nbsp;(<span class="id" type="keyword">∀</span> <span class="id" type="var">u1</span> <span class="id" type="var">u2</span>, <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Logic.Decidable.html#decidable"><span class="id" type="definition">Decidable.decidable</span></a> (<a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Tools.html#u1"><span class="id" type="variable">u1</span></a> <a class="idref" href="Tools.html#u2"><span class="id" type="variable">u2</span></a>)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Logic.Decidable.html#decidable"><span class="id" type="definition">Decidable.decidable</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'exists'_x_'..'_x_','_x"><span class="id" type="notation">∃</span></a> <span class="id" type="var">u1</span> <span class="id" type="var">u2</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'exists'_x_'..'_x_','_x"><span class="id" type="notation">,</span></a> <a class="idref" href="Tools.html#u"><span class="id" type="variable">u</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Tools.html#u1"><span class="id" type="variable">u1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a> <a class="idref" href="Tools.html#u2"><span class="id" type="variable">u2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Tools.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Tools.html#u1"><span class="id" type="variable">u1</span></a> <a class="idref" href="Tools.html#u2"><span class="id" type="variable">u2</span></a>).<br/>
+ 
+<br/>
+</div>
+
+<div class="doc">
+A mesure is just a list homomorphism. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="mesure"><span class="id" type="definition">mesure</span></a> {<span class="id" type="var">A</span>} <span class="id" type="var">mes</span> :=<br/>
+&nbsp;&nbsp;(<span class="id" type="keyword">∀</span> <span class="id" type="var">u1</span> <span class="id" type="var">u2</span> : <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#list"><span class="id" type="inductive">list</span></a> <a class="idref" href="Tools.html#A"><span class="id" type="variable">A</span></a>, <a class="idref" href="Tools.html#mes"><span class="id" type="variable">mes</span></a> (<a class="idref" href="Tools.html#u1"><span class="id" type="variable">u1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a> <a class="idref" href="Tools.html#u2"><span class="id" type="variable">u2</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Tools.html#mes"><span class="id" type="variable">mes</span></a> <a class="idref" href="Tools.html#u1"><span class="id" type="variable">u1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'+'_x"><span class="id" type="notation">+</span></a> <a class="idref" href="Tools.html#mes"><span class="id" type="variable">mes</span></a> <a class="idref" href="Tools.html#u2"><span class="id" type="variable">u2</span></a>).<br/>
+
+<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

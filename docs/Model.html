@@ -1,0 +1,523 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link href="coqdoc.css" rel="stylesheet" type="text/css"/>
+<title>Model</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library Model</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+Here we define the computationnal model used 
+    in the proof. We also prove some basic lemmas
+    about this model. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Lists.List.html#"><span class="id" type="library">List</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Arith.Arith.html#"><span class="id" type="library">Arith</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSets.html#"><span class="id" type="library">FSets</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetAVL.html#"><span class="id" type="library">FSetAVL</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetFacts.html#"><span class="id" type="library">FSetFacts</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetEqProperties.html#"><span class="id" type="library">FSetEqProperties</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetProperties.html#"><span class="id" type="library">FSetProperties</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="Tools.html#"><span class="id" type="library">Tools</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab4"></a><h1 class="section">Constants</h1>
+
+</div>
+<div class="code">
+<span class="id" type="keyword">Variable</span> <a name="L"><span class="id" type="variable">L</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Variable</span> <a name="wd"><span class="id" type="variable">wd</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>.<br/>
+<span class="id" type="keyword">Variable</span> <a name="uf"><span class="id" type="variable">uf</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>.<br/>
+<span class="id" type="keyword">Variable</span> <a name="ub"><span class="id" type="variable">ub</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>.<br/>
+<span class="id" type="keyword">Variable</span> <a name="rd"><span class="id" type="variable">rd</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Variable</span> <a name="cmem"><span class="id" type="variable">cmem</span></a> :<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab5"></a><h1 class="section">Operations</h1>
+
+</div>
+<div class="code">
+<span class="id" type="keyword">Inductive</span> <a name="op_type"><span class="id" type="inductive">op_type</span></a> : <span class="id" type="keyword">Set</span> :=<br/>
+| <a name="F"><span class="id" type="constructor">F</span></a> : <a class="idref" href="Model.html#op_type"><span class="id" type="inductive">op_type</span></a><br/>
+| <a name="Fb"><span class="id" type="constructor">Fb</span></a> : <a class="idref" href="Model.html#op_type"><span class="id" type="inductive">op_type</span></a><br/>
+| <a name="Wm"><span class="id" type="constructor">Wm</span></a>  : <a class="idref" href="Model.html#op_type"><span class="id" type="inductive">op_type</span></a><br/>
+| <a name="Wd"><span class="id" type="constructor">Wd</span></a>  : <a class="idref" href="Model.html#op_type"><span class="id" type="inductive">op_type</span></a><br/>
+| <a name="Rm"><span class="id" type="constructor">Rm</span></a>  : <a class="idref" href="Model.html#op_type"><span class="id" type="inductive">op_type</span></a><br/>
+| <a name="Rd"><span class="id" type="constructor">Rd</span></a>  : <a class="idref" href="Model.html#op_type"><span class="id" type="inductive">op_type</span></a><br/>
+| <a name="Dm"><span class="id" type="constructor">Dm</span></a>  : <a class="idref" href="Model.html#op_type"><span class="id" type="inductive">op_type</span></a><br/>
+| <a name="Dd"><span class="id" type="constructor">Dd</span></a>  : <a class="idref" href="Model.html#op_type"><span class="id" type="inductive">op_type</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="op"><span class="id" type="definition">op</span></a> := (<a class="idref" href="Model.html#op_type"><span class="id" type="inductive">op_type</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:type_scope:x_'*'_x"><span class="id" type="notation">×</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>)%<span class="id" type="var">type</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Definition</span> <a name="type"><span class="id" type="definition">type</span></a> (<span class="id" type="var">oi</span> : <a class="idref" href="Model.html#op"><span class="id" type="definition">op</span></a>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a class="idref" href="Model.html#oi"><span class="id" type="variable">oi</span></a> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><span class="id" type="var">o</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">i</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a> ⇒ <span class="id" type="var">o</span><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+<span class="id" type="keyword">Definition</span> <a name="index"><span class="id" type="definition">index</span></a> (<span class="id" type="var">oi</span> : <a class="idref" href="Model.html#op"><span class="id" type="definition">op</span></a>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a class="idref" href="Model.html#oi"><span class="id" type="variable">oi</span></a> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><span class="id" type="var">o</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">i</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a> ⇒ <span class="id" type="var">i</span><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The equality of operations is decidable. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="eq_op_dec"><span class="id" type="lemma">eq_op_dec</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">x</span> <span class="id" type="var">y</span> : <a class="idref" href="Model.html#op"><span class="id" type="definition">op</span></a>, <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">{</span></a><a class="idref" href="Model.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#y"><span class="id" type="variable">y</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">}</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">+</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">{</span></a><a class="idref" href="Model.html#x"><span class="id" type="variable">x</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'<>'_x"><span class="id" type="notation">≠</span></a> <a class="idref" href="Model.html#y"><span class="id" type="variable">y</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Specif.html#:type_scope:'{'_x_'}'_'+'_'{'_x_'}'"><span class="id" type="notation">}</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab6"></a><h1 class="section">Schedules</h1>
+
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="schedule"><span class="id" type="definition">schedule</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#list"><span class="id" type="inductive">list</span></a> <a class="idref" href="Model.html#op"><span class="id" type="definition">op</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Cost of a single operation. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="cost"><span class="id" type="definition">cost</span></a> (<span class="id" type="var">o</span> : <a class="idref" href="Model.html#op"><span class="id" type="definition">op</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a class="idref" href="Model.html#type"><span class="id" type="definition">type</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#F"><span class="id" type="constructor">F</span></a> ⇒ <a class="idref" href="Model.html#uf"><span class="id" type="axiom">uf</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Fb"><span class="id" type="constructor">Fb</span></a> ⇒ <a class="idref" href="Model.html#ub"><span class="id" type="axiom">ub</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Wd"><span class="id" type="constructor">Wd</span></a> ⇒ <a class="idref" href="Model.html#wd"><span class="id" type="axiom">wd</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Rd"><span class="id" type="constructor">Rd</span></a> ⇒ <a class="idref" href="Model.html#rd"><span class="id" type="axiom">rd</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" type="var">_</span> ⇒ 0<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Cost of a complete schedule. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="cost_schedule"><span class="id" type="definition">cost_schedule</span></a> (<span class="id" type="var">s</span> : <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a>) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Lists.List.html#fold_left"><span class="id" type="definition">fold_left</span></a> (<span class="id" type="keyword">fun</span> <span class="id" type="var">c</span> <span class="id" type="var">o</span> ⇒ <a class="idref" href="Model.html#c"><span class="id" type="variable">c</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'+'_x"><span class="id" type="notation">+</span></a> <a class="idref" href="Model.html#cost"><span class="id" type="definition">cost</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a>) <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a> 0.<br/>
+
+<br/>
+<span class="id" type="keyword">Notation</span> <a name="::x_'$'"><span class="id" type="notation">"</span></a>o $" := (<a class="idref" href="Model.html#cost"><span class="id" type="definition">cost</span></a> <span class="id" type="var">o</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 20).<br/>
+<span class="id" type="keyword">Notation</span> <a name="::'|'_x_'|'"><span class="id" type="notation">"</span></a>| s |" := (<a class="idref" href="Model.html#cost_schedule"><span class="id" type="definition">cost_schedule</span></a> <span class="id" type="var">s</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 20).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We may define an order over schedule based on their cost. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Notation</span> <a name="::x_'<$'_x"><span class="id" type="notation">"</span></a>u &lt;$ v" := (<a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a><span class="id" type="var">u</span><a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'<='_x"><span class="id" type="notation">≤</span></a> <a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a><span class="id" type="var">v</span><a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 60).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The cost of the empty schedule is 0. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="cost_nil"><span class="id" type="lemma">cost_nil</span></a> : <a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nil"><span class="id" type="constructor">nil</span></a><a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Specification of the cost function. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="cost_unit"><span class="id" type="lemma">cost_unit</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">u</span> <span class="id" type="var">op</span> , <a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a><a class="idref" href="Model.html#op"><span class="id" type="variable">op</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'::'_x"><span class="id" type="notation">::</span></a><a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a><a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#op"><span class="id" type="variable">op</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'+'_x"><span class="id" type="notation">$</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'+'_x"><span class="id" type="notation">+</span></a> <a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a> <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a> <a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" type="var">cost_schedule</span></span> is a list homomorphism. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="cost_app"><span class="id" type="lemma">cost_app</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Tools.html#mesure"><span class="id" type="definition">mesure</span></a> <a class="idref" href="Model.html#cost_schedule"><span class="id" type="definition">cost_schedule</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The cost of a schedule does not depend upon evaluation order. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="cost_rev"><span class="id" type="lemma">cost_rev</span></a> : <span class="id" type="keyword">∀</span> <span class="id" type="var">u</span>, <a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a><a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a><a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Lists.List.html#rev"><span class="id" type="definition">rev</span></a> <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a><a class="idref" href="Model.html#::'|'_x_'|'"><span class="id" type="notation">|</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+An optimal schedule is one that is less costly that any other. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="optimal"><span class="id" type="definition">optimal</span></a> <span class="id" type="var">s</span> := <span class="id" type="keyword">∀</span> <span class="id" type="var">s'</span>, <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a> <a class="idref" href="Model.html#::x_'<$'_x"><span class="id" type="notation">&lt;$</span></a> <a class="idref" href="Model.html#s'"><span class="id" type="variable">s'</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+To prove the optimality of a schedule, one may simply prove 
+    that it is less costly than another optimal schedule. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="opt_leq"><span class="id" type="lemma">opt_leq</span></a> <span class="id" type="var">s1</span> <span class="id" type="var">s2</span> : <a class="idref" href="Model.html#optimal"><span class="id" type="definition">optimal</span></a> <a class="idref" href="Model.html#s1"><span class="id" type="variable">s1</span></a> → <a class="idref" href="Model.html#s2"><span class="id" type="variable">s2</span></a> <a class="idref" href="Model.html#::x_'<$'_x"><span class="id" type="notation">&lt;$</span></a> <a class="idref" href="Model.html#s1"><span class="id" type="variable">s1</span></a> → <a class="idref" href="Model.html#optimal"><span class="id" type="definition">optimal</span></a> <a class="idref" href="Model.html#s2"><span class="id" type="variable">s2</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab7"></a><h1 class="section">Machine states.</h1>
+
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="storage"><span class="id" type="definition">storage</span></a> := <a class="idref" href="Tools.html#NSet.t"><span class="id" type="definition">NSet.t</span></a>.<br/>
+<span class="id" type="keyword">Definition</span> <a name="buffer"><span class="id" type="definition">buffer</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nat"><span class="id" type="inductive">nat</span></a>.<br/>
+<span class="id" type="keyword">Definition</span> <a name="state"><span class="id" type="definition">state</span></a> := (<a class="idref" href="Model.html#buffer"><span class="id" type="definition">buffer</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:type_scope:x_'*'_x"><span class="id" type="notation">×</span></a> <a class="idref" href="Model.html#buffer"><span class="id" type="definition">buffer</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:type_scope:x_'*'_x"><span class="id" type="notation">×</span></a> <a class="idref" href="Model.html#storage"><span class="id" type="definition">storage</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:type_scope:x_'*'_x"><span class="id" type="notation">×</span></a> <a class="idref" href="Model.html#storage"><span class="id" type="definition">storage</span></a>) %<span class="id" type="var">type</span>.<br/>
+<span class="id" type="keyword">Definition</span> <a name="get_top"><span class="id" type="definition">get_top</span></a> (<span class="id" type="var">e</span> : <a class="idref" href="Model.html#state"><span class="id" type="definition">state</span></a>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <span class="id" type="keyword">with</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><span class="id" type="var">t</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">b</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">m</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">d</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a> ⇒ <span class="id" type="var">t</span> <span class="id" type="keyword">end</span>.<br/>
+<span class="id" type="keyword">Definition</span> <a name="get_bottom"><span class="id" type="definition">get_bottom</span></a> (<span class="id" type="var">e</span> : <a class="idref" href="Model.html#state"><span class="id" type="definition">state</span></a>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <span class="id" type="keyword">with</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><span class="id" type="var">t</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">b</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">m</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">d</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a> ⇒ <span class="id" type="var">b</span> <span class="id" type="keyword">end</span>.<br/>
+<span class="id" type="keyword">Definition</span> <a name="get_memory"><span class="id" type="definition">get_memory</span></a> (<span class="id" type="var">e</span> : <a class="idref" href="Model.html#state"><span class="id" type="definition">state</span></a>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <span class="id" type="keyword">with</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><span class="id" type="var">t</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">b</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">m</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">d</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a> ⇒ <span class="id" type="var">m</span> <span class="id" type="keyword">end</span>.<br/>
+<span class="id" type="keyword">Definition</span> <a name="get_disk"><span class="id" type="definition">get_disk</span></a> (<span class="id" type="var">e</span> : <a class="idref" href="Model.html#state"><span class="id" type="definition">state</span></a>) :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <span class="id" type="keyword">with</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><span class="id" type="var">t</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">b</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">m</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><span class="id" type="var">d</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a> ⇒ <span class="id" type="var">d</span> <span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The equivalence of machine states. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="equiv"><span class="id" type="definition">equiv</span></a> <span class="id" type="var">e</span> <span class="id" type="var">f</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#get_top"><span class="id" type="definition">get_top</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#get_top"><span class="id" type="definition">get_top</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Tools.html#NSet.eq"><span class="id" type="definition">NSet.eq</span></a> (<a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>) (<a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a>)<br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Tools.html#NSet.eq"><span class="id" type="definition">NSet.eq</span></a> (<a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>) (<a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a>).<br/>
+
+<br/>
+<span class="id" type="keyword">Notation</span> <a name="::x_'≡'_x"><span class="id" type="notation">"</span></a>e ≡ f" := (<a class="idref" href="Model.html#equiv"><span class="id" type="definition">equiv</span></a> <span class="id" type="var">e</span> <span class="id" type="var">f</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 60).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" type="var">equiv</span></span> is reflexive. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="equiv_refl"><span class="id" type="lemma">equiv_refl</span></a> <span class="id" type="var">e</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" type="var">equiv</span></span> is symmetric. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="equiv_sym"><span class="id" type="lemma">equiv_sym</span></a> <span class="id" type="var">e</span> <span class="id" type="var">f</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> → <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" type="var">equiv</span></span> is transitive. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="equiv_trans"><span class="id" type="lemma">equiv_trans</span></a> <span class="id" type="var">f</span> <span class="id" type="var">e</span> <span class="id" type="var">g</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> → <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#g"><span class="id" type="variable">g</span></a> → <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#g"><span class="id" type="variable">g</span></a> .<br/>
+
+<br/>
+<span class="id" type="keyword">Hint Resolve</span> <a class="idref" href="Model.html#equiv_refl"><span class="id" type="lemma">equiv_refl</span></a> <a class="idref" href="Model.html#equiv_trans"><span class="id" type="lemma">equiv_trans</span></a> <a class="idref" href="Model.html#equiv_sym"><span class="id" type="lemma">equiv_sym</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The size of the memory of a state is the number of elements
+    stored in its memory. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="size_memory"><span class="id" type="definition">size_memory</span></a> <span class="id" type="var">e</span> := <a class="idref" href="Tools.html#NSet.cardinal"><span class="id" type="definition">NSet.cardinal</span></a> (<a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>).<br/>
+
+<br/>
+<span class="id" type="keyword">Notation</span> <a name="::'#'_x"><span class="id" type="notation">"</span></a># e" := (<a class="idref" href="Model.html#size_memory"><span class="id" type="definition">size_memory</span></a> <span class="id" type="var">e</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 20).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A state has a bounded memory if the size of its memory is
+    smaller than the capacity of the memory. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="bound_memory"><span class="id" type="definition">bound_memory</span></a> <span class="id" type="var">e</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#::'#'_x"><span class="id" type="notation">#</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'<='_x"><span class="id" type="notation">≤</span></a> <a class="idref" href="Model.html#cmem"><span class="id" type="axiom">cmem</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Equivalent machine states have the same size of memory. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="same_size_mem"><span class="id" type="lemma">same_size_mem</span></a> <span class="id" type="var">e</span> <span class="id" type="var">f</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> → <a class="idref" href="Model.html#::'#'_x"><span class="id" type="notation">#</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#::'#'_x"><span class="id" type="notation">#</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab8"></a><h1 class="section">Evaluation of a schedule.</h1>
+
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="rmv"><span class="id" type="definition">rmv</span></a> := <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Lists.List.html#remove"><span class="id" type="definition">remove</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Arith.Peano_dec.html#eq_nat_dec"><span class="id" type="lemma">eq_nat_dec</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" type="var">eval_op</span></span> <span class="inlinecode"><span class="id" type="var">o</span></span> <span class="inlinecode"><span class="id" type="var">e</span></span> computes the result of executing the operation <span class="inlinecode"><span class="id" type="var">o</span></span> 
+    from the state <span class="inlinecode"><span class="id" type="var">e</span></span>. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="eval_op"><span class="id" type="definition">eval_op</span></a> <span class="id" type="var">o</span> <span class="id" type="var">e</span> : <a class="idref" href="Model.html#state"><span class="id" type="definition">state</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">i</span> := <a class="idref" href="Model.html#index"><span class="id" type="definition">index</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a class="idref" href="Model.html#type"><span class="id" type="definition">type</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#F"><span class="id" type="constructor">F</span></a> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'+'_x"><span class="id" type="notation">+</span></a>1<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Fb"><span class="id" type="constructor">Fb</span></a> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a> <a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Wm"><span class="id" type="constructor">Wm</span></a> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Tools.html#NSet.add"><span class="id" type="definition">NSet.add</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> (<a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>)<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Wd"><span class="id" type="constructor">Wd</span></a> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Tools.html#NSet.add"><span class="id" type="definition">NSet.add</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> (<a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>)<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Rm"><span class="id" type="constructor">Rm</span></a> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Rd"><span class="id" type="constructor">Rd</span></a> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Dm"><span class="id" type="constructor">Dm</span></a> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#get_top"><span class="id" type="definition">get_top</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Tools.html#NSet.remove"><span class="id" type="definition">NSet.remove</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> (<a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>)<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Dd"><span class="id" type="constructor">Dd</span></a> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#get_top"><span class="id" type="definition">get_top</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">,</span></a><a class="idref" href="Tools.html#NSet.remove"><span class="id" type="definition">NSet.remove</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> (<a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>)<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:core_scope:'('_x_','_x_','_'..'_','_x_')'"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Notation</span> <a name="::x_'→'_x"><span class="id" type="notation">"</span></a>e → o" := (<a class="idref" href="Model.html#eval_op"><span class="id" type="definition">eval_op</span></a> <span class="id" type="var">o</span> <span class="id" type="var">e</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 40).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A schedule can be evaluated from a machine state by 
+    evaluating successively each of its operations, starting 
+    from the last one (right to left evaluation).
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="eval_schedule"><span class="id" type="definition">eval_schedule</span></a> <span class="id" type="var">e</span> <span class="id" type="var">s</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Lists.List.html#fold_right"><span class="id" type="definition">fold_right</span></a> <a class="idref" href="Model.html#eval_op"><span class="id" type="definition">eval_op</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Notation</span> <a name="::x_'⇒'_x"><span class="id" type="notation">"</span></a>e ⇒ s" := (<a class="idref" href="Model.html#eval_schedule"><span class="id" type="definition">eval_schedule</span></a> <span class="id" type="var">e</span> <span class="id" type="var">s</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 50).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+From a state <span class="inlinecode"><span class="id" type="var">e</span></span> the operation <span class="inlinecode"><span class="id" type="var">o</span></span> is useless if its evaluation 
+    does not modify <span class="inlinecode"><span class="id" type="var">e</span></span>. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="useless"><span class="id" type="definition">useless</span></a> <span class="id" type="var">e</span> <span class="id" type="var">o</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'→'_x"><span class="id" type="notation">→</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Evaluating an operation from two equivalent states yields two 
+    equivalent states. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="equiv_eval_op"><span class="id" type="lemma">equiv_eval_op</span></a> <span class="id" type="var">e</span> <span class="id" type="var">f</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> → (<span class="id" type="keyword">∀</span> <span class="id" type="var">o</span>, <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="Model.html#::x_'→'_x"><span class="id" type="notation">→</span></a><a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a><a class="idref" href="Model.html#::x_'→'_x"><span class="id" type="notation">→</span></a><a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> ).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Evaluating a schedule from two equivalent states yields two 
+    equivalent states. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="equiv_eval"><span class="id" type="lemma">equiv_eval</span></a> <span class="id" type="var">e</span> <span class="id" type="var">f</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> → (<span class="id" type="keyword">∀</span> <span class="id" type="var">s</span>, <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">⇒</span></a><a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a><a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">⇒</span></a><a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a> ).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The evaluation can be split along a concatenation. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="eval_app"><span class="id" type="lemma">eval_app</span></a> <span class="id" type="var">s1</span> <span class="id" type="var">s2</span> :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">∀</span> <span class="id" type="var">e</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">⇒</span></a> <a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#s1"><span class="id" type="variable">s1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a> <a class="idref" href="Model.html#s2"><span class="id" type="variable">s2</span></a><a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">⇒</span></a> <a class="idref" href="Model.html#s2"><span class="id" type="variable">s2</span></a> <a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">⇒</span></a> <a class="idref" href="Model.html#s1"><span class="id" type="variable">s1</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We can define an equivalence relation over schedules based on
+    the result of their evaluation from any state. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="eq_eval"><span class="id" type="definition">eq_eval</span></a> <span class="id" type="var">s1</span> <span class="id" type="var">s2</span> :=<span class="id" type="keyword">∀</span> <span class="id" type="var">e</span>, <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">⇒</span></a> <a class="idref" href="Model.html#s1"><span class="id" type="variable">s1</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">⇒</span></a><a class="idref" href="Model.html#s2"><span class="id" type="variable">s2</span></a>.<br/>
+<span class="id" type="keyword">Notation</span> <a name="::x_'⋈'_x"><span class="id" type="notation">"</span></a>s1 ⋈ s2" := (<a class="idref" href="Model.html#eq_eval"><span class="id" type="definition">eq_eval</span></a> <span class="id" type="var">s1</span> <span class="id" type="var">s2</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 60).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="eq_eval_refl"><span class="id" type="lemma">eq_eval_refl</span></a> <span class="id" type="var">s</span> : <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a>.<br/>
+<span class="id" type="keyword">Lemma</span> <a name="eq_eval_sym"><span class="id" type="lemma">eq_eval_sym</span></a> <span class="id" type="var">u</span> <span class="id" type="var">v</span> : <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a> → <a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a>.<br/>
+<span class="id" type="keyword">Lemma</span> <a name="eq_eval_trans"><span class="id" type="lemma">eq_eval_trans</span></a> <span class="id" type="var">v</span> <span class="id" type="var">u</span> <span class="id" type="var">w</span> : <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a> → <a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#w"><span class="id" type="variable">w</span></a> → <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#w"><span class="id" type="variable">w</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Hint Resolve</span> <a class="idref" href="Model.html#eq_eval_refl"><span class="id" type="lemma">eq_eval_refl</span></a> <a class="idref" href="Model.html#eq_eval_sym"><span class="id" type="lemma">eq_eval_sym</span></a> <a class="idref" href="Model.html#eq_eval_trans"><span class="id" type="lemma">eq_eval_trans</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="eq_eval_app"><span class="id" type="lemma">eq_eval_app</span></a> <span class="id" type="var">u</span> <span class="id" type="var">v</span> <span class="id" type="var">v'</span> : <a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#v'"><span class="id" type="variable">v'</span></a> → <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a><a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a><a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">)</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a><a class="idref" href="Model.html#v'"><span class="id" type="variable">v'</span></a><a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">)</span></a>.<br/>
+</div>
+
+<div class="doc">
+<a name="lab9"></a><h1 class="section">Validity of a schedule for with respect to some machine state.</h1>
+
+<div class="paragraph"> </div>
+
+ Validity of a single operation from a state. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="valid_op"><span class="id" type="definition">valid_op</span></a> <span class="id" type="var">e</span> <span class="id" type="var">o</span> : <span class="id" type="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">let</span> <span class="id" type="var">i</span> := <a class="idref" href="Model.html#index"><span class="id" type="definition">index</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> <span class="id" type="keyword">in</span><br/>
+&nbsp;&nbsp;<span class="id" type="keyword">match</span> <a class="idref" href="Model.html#type"><span class="id" type="definition">type</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> <span class="id" type="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#F"><span class="id" type="constructor">F</span></a> ⇒ <a class="idref" href="Model.html#get_top"><span class="id" type="definition">get_top</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Fb"><span class="id" type="constructor">Fb</span></a> ⇒ <a class="idref" href="Model.html#get_top"><span class="id" type="definition">get_top</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Model.html#get_bottom"><span class="id" type="definition">get_bottom</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'+'_x"><span class="id" type="notation">+</span></a>1<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Wm"><span class="id" type="constructor">Wm</span></a> ⇒ <a class="idref" href="Model.html#get_top"><span class="id" type="definition">get_top</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Model.html#size_memory"><span class="id" type="definition">size_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'<'_x"><span class="id" type="notation">&lt;</span></a> <a class="idref" href="Model.html#cmem"><span class="id" type="axiom">cmem</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Wd"><span class="id" type="constructor">Wd</span></a> ⇒ <a class="idref" href="Model.html#get_top"><span class="id" type="definition">get_top</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Rm"><span class="id" type="constructor">Rm</span></a> ⇒ <a class="idref" href="Tools.html#NSet.In"><span class="id" type="definition">NSet.In</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> (<a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Rd"><span class="id" type="constructor">Rd</span></a> ⇒ <a class="idref" href="Tools.html#NSet.In"><span class="id" type="definition">NSet.In</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> (<a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Dm"><span class="id" type="constructor">Dm</span></a> ⇒ <a class="idref" href="Tools.html#NSet.In"><span class="id" type="definition">NSet.In</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> (<a class="idref" href="Model.html#get_memory"><span class="id" type="definition">get_memory</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="Model.html#Dd"><span class="id" type="constructor">Dd</span></a> ⇒ <a class="idref" href="Tools.html#NSet.In"><span class="id" type="definition">NSet.In</span></a> <a class="idref" href="Model.html#i"><span class="id" type="variable">i</span></a> (<a class="idref" href="Model.html#get_disk"><span class="id" type="definition">get_disk</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a>)<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" type="keyword">Notation</span> <a name="::x_'⊩'_x"><span class="id" type="notation">"</span></a>e ⊩ o" := (<a class="idref" href="Model.html#valid_op"><span class="id" type="definition">valid_op</span></a> <span class="id" type="var">e</span> <span class="id" type="var">o</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 40).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Validity of a schedule from a state. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Inductive</span> <a name="valid_schedule"><span class="id" type="inductive">valid_schedule</span></a> : <a class="idref" href="Model.html#state"><span class="id" type="definition">state</span></a> → <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a> → <span class="id" type="keyword">Prop</span> :=<br/>
+| <a name="vempty"><span class="id" type="constructor">vempty</span></a> <span class="id" type="var">e</span> <span class="id" type="var">s</span> : <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#nil"><span class="id" type="constructor">nil</span></a> → <a class="idref" href="Model.html#valid_schedule"><span class="id" type="inductive">valid_schedule</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a><br/>
+| <a name="vcons"><span class="id" type="constructor">vcons</span></a> <span class="id" type="var">e</span> <span class="id" type="var">o</span> <span class="id" type="var">s</span> : <a class="idref" href="Model.html#::x_'⊩'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">⇒</span></a> <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a><a class="idref" href="Model.html#::x_'⊩'_x"><span class="id" type="notation">)</span></a> <a class="idref" href="Model.html#::x_'⊩'_x"><span class="id" type="notation">⊩</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> → <a class="idref" href="Model.html#valid_schedule"><span class="id" type="inductive">valid_schedule</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Model.html#valid_schedule"><span class="id" type="inductive">valid_schedule</span></a> <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> (<a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'::'_x"><span class="id" type="notation">::</span></a><a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a>).<br/>
+
+<br/>
+<span class="id" type="keyword">Notation</span> <a name="::x_'⊨'_x"><span class="id" type="notation">"</span></a>e ⊨ s" := (<a class="idref" href="Model.html#valid_schedule"><span class="id" type="inductive">valid_schedule</span></a> <span class="id" type="var">e</span> <span class="id" type="var">s</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 50).<br/>
+<span class="id" type="keyword">Hint Constructors</span> <a class="idref" href="Model.html#valid_schedule"><span class="id" type="inductive">valid_schedule</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+State equivalence preserves the validity of operations. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="equiv_valid_op"><span class="id" type="lemma">equiv_valid_op</span></a> <span class="id" type="var">e</span> <span class="id" type="var">f</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> → (<span class="id" type="keyword">∀</span> <span class="id" type="var">o</span>, <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'⊩'_x"><span class="id" type="notation">⊩</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> → <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Model.html#::x_'⊩'_x"><span class="id" type="notation">⊩</span></a> <a class="idref" href="Model.html#o"><span class="id" type="variable">o</span></a> ).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+State equivalence preserves the validity of schedules. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="equiv_valid"><span class="id" type="lemma">equiv_valid</span></a> <span class="id" type="var">e</span> <span class="id" type="var">f</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'≡'_x"><span class="id" type="notation">≡</span></a> <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> → (<span class="id" type="keyword">∀</span> <span class="id" type="var">s</span>, <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">⊨</span></a> <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a> → <a class="idref" href="Model.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">⊨</span></a> <a class="idref" href="Model.html#s"><span class="id" type="variable">s</span></a> ).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Validity can be split along a concatenation. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="valid_app"><span class="id" type="lemma">valid_app</span></a> <span class="id" type="var">s1</span> <span class="id" type="var">s2</span> : <span class="id" type="keyword">∀</span> <span class="id" type="var">e</span>,<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">⊨</span></a> <a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#s1"><span class="id" type="variable">s1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a> <a class="idref" href="Model.html#s2"><span class="id" type="variable">s2</span></a><a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'<->'_x"><span class="id" type="notation">↔</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">⊨</span></a> <a class="idref" href="Model.html#s2"><span class="id" type="variable">s2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a> <a class="idref" href="Model.html#::x_'⇒'_x"><span class="id" type="notation">⇒</span></a> <a class="idref" href="Model.html#s2"><span class="id" type="variable">s2</span></a><a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">)</span></a> <a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">⊨</span></a> <a class="idref" href="Model.html#s1"><span class="id" type="variable">s1</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We can build an preorder relation over schedules from their 
+    validity from any state. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="le_valid"><span class="id" type="definition">le_valid</span></a> <span class="id" type="var">u</span> <span class="id" type="var">v</span> := <span class="id" type="keyword">∀</span> <span class="id" type="var">e</span>, <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">⊨</span></a><a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a> → <a class="idref" href="Model.html#e"><span class="id" type="variable">e</span></a><a class="idref" href="Model.html#::x_'⊨'_x"><span class="id" type="notation">⊨</span></a><a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a>.<br/>
+<span class="id" type="keyword">Notation</span> <a name="::x_'≤'_x"><span class="id" type="notation">"</span></a>u ≤ v" := (<a class="idref" href="Model.html#le_valid"><span class="id" type="definition">le_valid</span></a> <span class="id" type="var">u</span> <span class="id" type="var">v</span>) (<span class="id" type="tactic">at</span> <span class="id" type="keyword">level</span> 60).<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="le_valid_refl"><span class="id" type="lemma">le_valid_refl</span></a> <span class="id" type="var">u</span> : <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a> <a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">≤</span></a> <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="le_valid_trans"><span class="id" type="lemma">le_valid_trans</span></a> <span class="id" type="var">v</span> <span class="id" type="var">u</span> <span class="id" type="var">w</span> : <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a> <a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">≤</span></a> <a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a> → <a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a> <a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">≤</span></a> <a class="idref" href="Model.html#w"><span class="id" type="variable">w</span></a> → <a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a> <a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">≤</span></a> <a class="idref" href="Model.html#w"><span class="id" type="variable">w</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Hint Resolve</span> <a class="idref" href="Model.html#le_valid_refl"><span class="id" type="lemma">le_valid_refl</span></a> <a class="idref" href="Model.html#le_valid_trans"><span class="id" type="lemma">le_valid_trans</span></a>.<br/>
+
+<br/>
+<span class="id" type="keyword">Lemma</span> <a name="le_valid_app"><span class="id" type="lemma">le_valid_app</span></a> <span class="id" type="var">u</span> <span class="id" type="var">v</span> <span class="id" type="var">v'</span> :<br/>
+&nbsp;&nbsp;<a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#v'"><span class="id" type="variable">v'</span></a> → <a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a> <a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">≤</span></a> <a class="idref" href="Model.html#v'"><span class="id" type="variable">v'</span></a> → <a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a><a class="idref" href="Model.html#v"><span class="id" type="variable">v</span></a><a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">)</span></a> <a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">≤</span></a> <a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#u"><span class="id" type="variable">u</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a><a class="idref" href="Model.html#v'"><span class="id" type="variable">v'</span></a><a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">)</span></a>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

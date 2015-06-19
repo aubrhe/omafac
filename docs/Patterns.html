@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link href="coqdoc.css" rel="stylesheet" type="text/css"/>
+<title>Patterns</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library Patterns</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+This module implements a general framework for 
+    specifying patterns. Its also provides usefull
+    lemmas to prove that some of those may be safely
+    removed.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Lists.List.html#"><span class="id" type="library">List</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Arith.Arith.html#"><span class="id" type="library">Arith</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSets.html#"><span class="id" type="library">FSets</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetAVL.html#"><span class="id" type="library">FSetAVL</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetFacts.html#"><span class="id" type="library">FSetFacts</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetEqProperties.html#"><span class="id" type="library">FSetEqProperties</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.FSets.FSetProperties.html#"><span class="id" type="library">FSetProperties</span></a>.<br/>
+<span class="id" type="keyword">Require</span> <span class="id" type="keyword">Import</span> <a class="idref" href="Tools.html#"><span class="id" type="library">Tools</span></a> <a class="idref" href="Model.html#"><span class="id" type="library">Model</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A pattern is defined by a property up to context. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="pattern"><span class="id" type="definition">pattern</span></a> <span class="id" type="var">P</span> (<span class="id" type="var">u</span> : <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a>) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'exists'_x_'..'_x_','_x"><span class="id" type="notation">∃</span></a> <span class="id" type="var">u1</span> <span class="id" type="var">u2</span> <span class="id" type="var">u3</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'exists'_x_'..'_x_','_x"><span class="id" type="notation">,</span></a> <a class="idref" href="Patterns.html#u"><span class="id" type="variable">u</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'='_x"><span class="id" type="notation">=</span></a> <a class="idref" href="Patterns.html#u1"><span class="id" type="variable">u1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a> <a class="idref" href="Patterns.html#u3"><span class="id" type="variable">u3</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Patterns.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If the property defining the pattern is decidable,
+    so is the pattern. 
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="destruct_pattern"><span class="id" type="lemma">destruct_pattern</span></a> <span class="id" type="var">P</span> :<br/>
+&nbsp;&nbsp;(<span class="id" type="keyword">∀</span> <span class="id" type="var">u</span>, <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Logic.Decidable.html#decidable"><span class="id" type="definition">Decidable.decidable</span></a> (<a class="idref" href="Patterns.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Patterns.html#u"><span class="id" type="variable">u</span></a>)) →<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">∀</span> <span class="id" type="var">u</span>, <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Logic.Decidable.html#decidable"><span class="id" type="definition">Decidable.decidable</span></a> (<a class="idref" href="Patterns.html#pattern"><span class="id" type="definition">pattern</span></a> <a class="idref" href="Patterns.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Patterns.html#u"><span class="id" type="variable">u</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+A reducing function with regard to <span class="inlinecode"><span class="id" type="var">P</span></span> and <span class="inlinecode"><span class="id" type="var">K</span></span> is a 
+    function that makes some mesure strictly decrease, 
+    that preserves <span class="inlinecode"><span class="id" type="var">K</span></span>, evaluation and validity, does
+    not increase the cost, and converts a schedule 
+    verifying <span class="inlinecode"><span class="id" type="var">P</span></span> into one not verifying <span class="inlinecode"><span class="id" type="var">P</span></span>.
+
+</div>
+<div class="code">
+<span class="id" type="keyword">Definition</span> <a name="reducing_function"><span class="id" type="definition">reducing_function</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" type="var">P</span> <span class="id" type="var">K</span> : <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a> → <span class="id" type="keyword">Prop</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" type="var">f</span> : <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a> → <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a>) :=<br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'exists'_x_'..'_x_','_x"><span class="id" type="notation">∃</span></a> <span class="id" type="var">m</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'exists'_x_'..'_x_','_x"><span class="id" type="notation">,</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Tools.html#mesure"><span class="id" type="definition">mesure</span></a> <a class="idref" href="Patterns.html#m"><span class="id" type="variable">m</span></a> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">(</span></a><span class="id" type="keyword">∀</span> <span class="id" type="var">u2</span> <span class="id" type="var">u1</span> <span class="id" type="var">u3</span> : <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Patterns.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'~'_x"><span class="id" type="notation">¬</span></a> <a class="idref" href="Patterns.html#P"><span class="id" type="variable">P</span></a> (<a class="idref" href="Patterns.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a>)<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Patterns.html#m"><span class="id" type="variable">m</span></a> (<a class="idref" href="Patterns.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Peano.html#:nat_scope:x_'<'_x"><span class="id" type="notation">&lt;</span></a> <a class="idref" href="Patterns.html#m"><span class="id" type="variable">m</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#::x_'<$'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Patterns.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a><a class="idref" href="Model.html#::x_'<$'_x"><span class="id" type="notation">)</span></a> <a class="idref" href="Model.html#::x_'<$'_x"><span class="id" type="notation">&lt;$</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Patterns.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a> <a class="idref" href="Patterns.html#u3"><span class="id" type="variable">u3</span></a><a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">)</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a> <a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a><a class="idref" href="Patterns.html#u3"><span class="id" type="variable">u3</span></a><a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">)</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a> <a class="idref" href="Patterns.html#u3"><span class="id" type="variable">u3</span></a><a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">)≤</span></a> <a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Patterns.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">)++</span></a><a class="idref" href="Patterns.html#u3"><span class="id" type="variable">u3</span></a><a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">)</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">)</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Patterns.html#K"><span class="id" type="variable">K</span></a> (<a class="idref" href="Patterns.html#u1"><span class="id" type="variable">u1</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a><a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++</span></a><a class="idref" href="Patterns.html#u3"><span class="id" type="variable">u3</span></a>) → <a class="idref" href="Patterns.html#K"><span class="id" type="variable">K</span></a> (<a class="idref" href="Patterns.html#u1"><span class="id" type="variable">u1</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">++(</span></a><a class="idref" href="Patterns.html#f"><span class="id" type="variable">f</span></a> <a class="idref" href="Patterns.html#u2"><span class="id" type="variable">u2</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Datatypes.html#:list_scope:x_'++'_x"><span class="id" type="notation">)++</span></a><a class="idref" href="Patterns.html#u3"><span class="id" type="variable">u3</span></a>)<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">))</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If there is a reducing function for <span class="inlinecode"><span class="id" type="var">P</span></span> and <span class="inlinecode"><span class="id" type="var">K</span></span>, then it's possible
+    to remove pattern <span class="inlinecode"><span class="id" type="var">P</span></span> while preserving <span class="inlinecode"><span class="id" type="var">K</span></span>.
+    
+</div>
+<div class="code">
+<span class="id" type="keyword">Lemma</span> <a name="fun_no_pattern"><span class="id" type="lemma">fun_no_pattern</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" type="var">P</span> <span class="id" type="var">K</span> : <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a> → <span class="id" type="keyword">Prop</span>) :<br/>
+&nbsp;&nbsp;<span class="id" type="keyword">∀</span> <span class="id" type="var">f</span> : <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a> → <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" type="keyword">∀</span> <span class="id" type="var">u</span>, <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Logic.Decidable.html#decidable"><span class="id" type="definition">Decidable.decidable</span></a> (<a class="idref" href="Patterns.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Patterns.html#u"><span class="id" type="variable">u</span></a>)) →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Patterns.html#reducing_function"><span class="id" type="definition">reducing_function</span></a> <a class="idref" href="Patterns.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Patterns.html#K"><span class="id" type="variable">K</span></a> <a class="idref" href="Patterns.html#f"><span class="id" type="variable">f</span></a> →<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" type="keyword">∀</span> (<span class="id" type="var">u</span> : <a class="idref" href="Model.html#schedule"><span class="id" type="definition">schedule</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'exists'_x_'..'_x_','_x"><span class="id" type="notation">∃</span></a> <span class="id" type="var">v</span><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'exists'_x_'..'_x_','_x"><span class="id" type="notation">,</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:'~'_x"><span class="id" type="notation">¬</span></a> <a class="idref" href="Patterns.html#pattern"><span class="id" type="definition">pattern</span></a> <a class="idref" href="Patterns.html#P"><span class="id" type="variable">P</span></a> <a class="idref" href="Patterns.html#v"><span class="id" type="variable">v</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Patterns.html#v"><span class="id" type="variable">v</span></a> <a class="idref" href="Model.html#::x_'<$'_x"><span class="id" type="notation">&lt;$</span></a> <a class="idref" href="Patterns.html#u"><span class="id" type="variable">u</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Patterns.html#u"><span class="id" type="variable">u</span></a><a class="idref" href="Model.html#::x_'⋈'_x"><span class="id" type="notation">⋈</span></a><a class="idref" href="Patterns.html#v"><span class="id" type="variable">v</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="Patterns.html#u"><span class="id" type="variable">u</span></a><a class="idref" href="Model.html#::x_'≤'_x"><span class="id" type="notation">≤</span></a><a class="idref" href="Patterns.html#v"><span class="id" type="variable">v</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">(</span></a><a class="idref" href="Patterns.html#K"><span class="id" type="variable">K</span></a> <a class="idref" href="Patterns.html#u"><span class="id" type="variable">u</span></a> → <a class="idref" href="Patterns.html#K"><span class="id" type="variable">K</span></a> <a class="idref" href="Patterns.html#v"><span class="id" type="variable">v</span></a><a class="idref" href="http://coq.inria.fr/distrib/8.4pl5/stdlib/Coq.Init.Logic.html#:type_scope:x_'/\'_x"><span class="id" type="notation">)</span></a>.<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>
