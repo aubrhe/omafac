@@ -176,3 +176,20 @@ let h2 := fresh "h" in
 case (decomposition _ _ _ _ h); intros x h0; case h0; clear h0; intro h1;
 destruct h1 as (h1,h2); rewrite h1 in *;rewrite h2 in *;
 simpl in *;clear h.
+
+
+Lemma app_inv_tail {A} u v w (x : A) :
+  u ++ v = w ++ x :: nil
+  -> v <> nil
+  -> exists z, w = u ++ z /\ v = z ++ x::nil.
+Proof.
+  intros h hv.
+  decomp h.
+  destruct u0;simpl in *.
+  exists nil; 
+  repeat rewrite<- app_nil_end in *; simpl;
+    rewrite<- h2 in *;auto.
+  inversion h2;
+  symmetry in H1;apply app_eq_nil in H1;destruct H1;cauto.
+  exists u0;split;auto.
+Qed.

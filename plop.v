@@ -1,6 +1,6 @@
 Require Import List Arith.
 Require Import FSets FSetAVL FSetFacts FSetEqProperties FSetProperties.
-
+Require Import Tools.
 
 Ltac blast := solve [ auto |  discriminate | contradiction ].
 Ltac cauto := try blast.
