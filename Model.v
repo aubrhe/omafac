@@ -68,8 +68,22 @@ Definition cost_schedule (s : schedule) :=
 Notation "o $" := (cost o) (at level 20).
 Notation "| s |" := (cost_schedule s) (at level 20).
 
-(** We may define an order over schedule based on their cost. *)
+(** We may define a preorder over schedules based on their cost. *)
 Notation "u <$ v" := (|u| <= |v|) (at level 60).
+
+Lemma le_cost_refl u :
+  u <$ u.
+Proof.
+  auto.
+Qed.
+
+Lemma le_cost_trans v u w :
+  u <$ v -> v <$ w -> u <$ w.
+Proof.
+  intros h1 h2;apply (le_trans _ (|v|));auto.
+Qed.
+
+Hint Resolve le_cost_refl le_cost_trans.
 
 (** The cost of the empty schedule is 0. *)
 Lemma cost_nil : |nil| = 0.
@@ -175,7 +189,7 @@ rewrite h1 in *; rewrite h2 in *; rewrite h3 in *; rewrite hh1 in *.
 split ; [|split;[|split]];auto;apply NSet.eq_sym; auto.
 Qed.
 
-Hint Resolve equiv_refl equiv_trans equiv_sym.
+Hint Resolve opt_leq equiv_refl equiv_trans equiv_sym.
 
 (** The size of the memory of a state is the number of elements
     stored in its memory. *)
@@ -196,6 +210,55 @@ Proof.
   apply NP.Equal_cardinal;cauto.
 Qed.
 
+(** A machine state is bigger than another if it contains all of the
+    data the other has, but maybe more on disk. *)
+Definition is_smaller e f :=
+  get_top e = get_top f
+  /\ get_bottom e = get_bottom f
+  /\ NSet.eq (get_memory e) (get_memory f)
+  /\ NSet.Subset (get_disk e) (get_disk f).
+
+(** This relation is an order. *)
+Lemma is_smaller_refl e f :
+  e ≡ f -> is_smaller e f.
+Proof.
+  intros (h1 & h2 & h3 & h4).
+  repeat split;auto;intros.
+  apply h3;auto.
+  apply h3;auto.
+  intro x;apply h4.
+Qed.
+
+Lemma is_smaller_trans f e g :
+  is_smaller e f -> is_smaller f g -> is_smaller e g.
+Proof.
+  intros (h1 & h2 & h3 & h4) (h5 & h6 & h7 & h8); repeat split;
+  try rewrite h1;try rewrite h2;auto.
+  intro;  rewrite<- h7;rewrite <- h3;auto.
+  intro;  rewrite h3;rewrite  h7;auto.
+  eapply (NP.subset_trans);[apply h4|apply h8]. 
+Qed.
+
+Lemma is_smaller_antisym e f :
+  is_smaller e f -> is_smaller f e -> e ≡ f.
+Proof.
+  intros (h1 & h2 & h3 & h4) (h5 & h6 & h7 & h8); repeat split;auto.
+  apply h3.
+  apply h7.
+  apply h4.
+  apply h8.
+Qed.
+
+(** Related machine states have the same size of memory. *)
+Lemma same_size_mem_smaller e f :
+  is_smaller e f -> # e = # f.
+Proof.
+  intros (h1 & h2 & h3 & h4).
+  apply NP.Equal_cardinal;cauto.
+Qed.
+  
+Hint Resolve is_smaller_refl is_smaller_trans is_smaller_antisym.
+
 (** * Evaluation of a schedule. *)
 Definition rmv := remove (eq_nat_dec).
 
@@ -205,13 +268,17 @@ Definition eval_op o e : state :=
   let i := index o in
   match type o with
     | F => (i+1,get_bottom e,get_memory e,get_disk e)
-    | Fb => (i,i,get_memory e, get_disk e)
-    | Wm => (i,get_bottom e,NSet.add i (get_memory e),get_disk e)
-    | Wd => (i,get_bottom e,get_memory e,NSet.add i (get_disk e))
+    | Fb => (get_top e,i,get_memory e, get_disk e)
+    | Wm => (get_top e,get_bottom e,
+             NSet.add i (get_memory e),get_disk e)
+    | Wd => (get_top e,get_bottom e,get_memory e,
+             NSet.add i (get_disk e))
     | Rm => (i,get_bottom e,get_memory e,get_disk e)
     | Rd => (i,get_bottom e,get_memory e,get_disk e)
-    | Dm => (get_top e,get_bottom e,NSet.remove i (get_memory e),get_disk e)
-    | Dd => (get_top e,get_bottom e,get_memory e,NSet.remove i (get_disk e))
+    | Dm => (get_top e,get_bottom e,
+             NSet.remove i (get_memory e),get_disk e)
+    | Dd => (get_top e,get_bottom e,get_memory e,
+             NSet.remove i (get_disk e))
   end.
 
 Notation "e → o" := (eval_op o e) (at level 40).
@@ -264,7 +331,25 @@ Proof.
   intros;unfold eval_schedule;rewrite fold_right_app;auto.
 Qed.
 
+(** Evaluation from a bigger state will yield a bigger state. *)
+Lemma is_smaller_eval e f u :
+  is_smaller e f -> is_smaller (e ⇒ u) (f ⇒ u).
+Proof.
+  intro h;
+  induction u;
+  simpl;auto.
+  destruct IHu as (ht & hb & hm & hd).
+  simpl;destruct a as (o&i);destruct o;simpl;
+  repeat split;simpl;auto;
+  try (intros a ha; try (rewrite NP.Dec.F.add_iff in *;
+                          case ha);
+       try (rewrite NP.Dec.F.remove_iff in *;
+             destruct ha as (h1 & h2);split));
+  auto;
+  try rewrite hm;auto.
+Qed.
 
+  
 (** We can define an equivalence relation over schedules based on
     the result of their evaluation from any state. *)
 Definition eq_eval s1 s2 :=forall e, e ⇒ s1 ≡ e⇒s2.
@@ -364,6 +449,34 @@ Proof.
 
 Qed.
 
+Lemma is_smaller_valid_op e f o :
+  is_smaller e f -> (e ⊩ o) -> (f ⊩ o).
+Proof.
+  intros h1 he.
+  destruct o as (o,i);destruct o;simpl in *;
+  inversion he;cauto;
+  unfold valid_op;simpl in *;
+  destruct h1 as (h1 & h2 & h3 & h4);
+  try rewrite h1 in *;
+  try rewrite h2 in *;
+  try rewrite <- h3 in *;
+  auto.
+  split;auto.
+  rewrite <- (same_size_mem_smaller e _);auto.
+  repeat (split;auto).
+Qed.
+
+Lemma is_smaller_valid u :
+  forall e f, is_smaller e f -> (e ⊨ u) -> (f ⊨ u).
+Proof.
+  induction u;intros e f h1 he;auto.
+  inversion he;auto.
+  apply vcons.
+  apply (is_smaller_valid_op (e ⇒ u));auto. 
+  apply is_smaller_eval;auto.
+  apply (IHu e);auto.
+Qed.
+
 (** We can build an preorder relation over schedules from their 
     validity from any state. *)
 Definition le_valid u v := forall e, e⊨u -> e⊨v.
@@ -389,3 +502,49 @@ Proof.
   intros (hv & hu);split;auto.
   apply (equiv_valid (e ⇒ v));auto.
 Qed.  
+
+(** A good schedule is optimal and total. *)
+Definition good u :=
+  optimal u
+  /\ (0,L+1,NSet.empty,NSet.empty) ⊨ u
+  /\ get_bottom ((0,L+1,NSet.empty,NSet.empty) ⇒ u) = 0.
+
+
+(** A schedule is better than antoher if it perserves all of its good
+    properties while being less costly. *)
+Definition better u v :=
+  v <$ u /\ (forall e, e ⊨ u ->
+                       (e ⊨ v /\ is_smaller (e ⇒ u) (e ⇒ v))).
+Notation "u ⊲ v" := (better u v) (at level 60).
+
+(** Better is a preorder relation. *)
+Lemma better_refl u : u ⊲ u.
+Proof.
+  repeat split;auto;apply NP.subset_refl.
+Qed.
+
+Lemma better_trans v u w :
+  u ⊲ v -> v ⊲ w -> u ⊲ w.
+Proof.
+  intros (hc1 & h1) (hc2 & h2);split;eauto.
+  intros e h;apply h1 in h as (h & h3);apply h2 in h as (h & h4);split;eauto.
+Qed.
+
+Lemma better_good u v :
+  good u -> u ⊲ v -> good v.
+Proof.
+  intros (ho & hv & he) (hc & h).
+  apply h in hv as (hv & (_ & h2 & _)).
+  repeat split;eauto.
+  rewrite <- h2;auto.
+Qed.
+
+Lemma better_valid u v :
+  u ⊲ v -> u ≤ v.
+Proof.
+  intros (_ & h1) e h2.
+  apply h1 in h2;auto;destruct h2;auto.
+Qed.
+
+Hint Resolve better_refl better_trans better_good better_valid.
+

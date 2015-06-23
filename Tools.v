@@ -139,3 +139,40 @@ Qed.
 Definition mesure {A} mes :=
   (forall u1 u2 : list A, mes (u1 ++ u2) = mes u1 + mes u2).
 
+(** Usefull thing *)
+Lemma inv_rev {A} (u1 u2 : list A) (o1 o2 : A) :
+  u1++o1::nil = u2++o2::nil -> u1 = u2 /\ o1 = o2.
+Proof.
+  intro h.
+  assert (rev (u1++o1::nil) = rev (u2++o2::nil)) as hr.
+  rewrite h;auto.
+  repeat rewrite rev_unit in hr;inversion hr.
+  rewrite <- (rev_involutive u1);
+  rewrite <- (rev_involutive u2);rewrite H1;auto.
+Qed.
+
+Lemma decomposition {A} : forall u1 u2 u3 u4 : list A, u1++u2 = u3++u4 -> 
+exists u5, (u1=u3++u5 /\ u4=u5++u2) \/ (u3=u1++u5 /\ u2=u5++u4).
+Proof.
+induction u1.
+intros; exists u3; right;split; simpl; auto.
+destruct u3.
+intros; exists (a::u1); left;split; simpl; auto.
+intros.
+repeat rewrite<- app_comm_cons in *.
+inversion H.
+rewrite<- H1 in *.
+apply IHu1 in H2.
+destruct H2.
+exists x; case H0;intros;destruct H2;
+[left|right]; rewrite H2;rewrite H3; auto.
+Qed.
+
+Ltac decomp h :=
+let x := fresh "u" in
+let h0 :=fresh "h" in
+let h1 := fresh "h" in
+let h2 := fresh "h" in
+case (decomposition _ _ _ _ h); intros x h0; case h0; clear h0; intro h1;
+destruct h1 as (h1,h2); rewrite h1 in *;rewrite h2 in *;
+simpl in *;clear h.
