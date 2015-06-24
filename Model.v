@@ -353,24 +353,23 @@ Qed.
 (** We can define an equivalence relation over schedules based on
     the result of their evaluation from any state. *)
 Definition eq_eval s1 s2 :=forall e, e ⇒ s1 ≡ e⇒s2.
-Notation "s1 ⋈ s2" := (eq_eval s1 s2) (at level 60).
 
-Lemma eq_eval_refl s : s ⋈ s.
+Lemma eq_eval_refl s : eq_eval s s.
 Proof.
   intro e;apply equiv_refl.
 Qed.
-Lemma eq_eval_sym u v : u ⋈ v -> v ⋈ u.
+Lemma eq_eval_sym u v : eq_eval u v -> eq_eval v u.
 Proof.
   intros h e; apply equiv_sym;auto.
 Qed.
-Lemma eq_eval_trans v u w : u ⋈ v -> v ⋈ w -> u ⋈ w.
+Lemma eq_eval_trans v u w : eq_eval u v -> eq_eval v w -> eq_eval u w.
 Proof.
   intros h1 h2 e;apply (equiv_trans (e ⇒ v));auto.
 Qed.
 
 Hint Resolve eq_eval_refl eq_eval_sym eq_eval_trans.
 
-Lemma eq_eval_app u v v' : v ⋈ v' -> (u++v) ⋈ (u++v').
+Lemma eq_eval_app u v v' : eq_eval v v' -> eq_eval (u++v) (u++v').
 Proof.
   intros h e.
   repeat rewrite eval_app.  
@@ -495,7 +494,7 @@ Qed.
 Hint Resolve le_valid_refl le_valid_trans.
 
 Lemma le_valid_app u v v' :
-  v ⋈ v' -> v ≤ v' -> (u++v) ≤ (u++v').
+  eq_eval v v' -> v ≤ v' -> (u++v) ≤ (u++v').
 Proof.
   intros he h e.
   repeat rewrite valid_app.
@@ -548,3 +547,165 @@ Qed.
 
 Hint Resolve better_refl better_trans better_good better_valid.
 
+Definition commute o1 o2 :=
+  (o1::o2::nil) ≤ (o2::o1::nil)
+  /\ (o2::o1::nil) ≤ (o1::o2::nil)
+  /\ eq_eval (o1::o2::nil) (o2::o1::nil).
+Notation "o1 ⋈ o2" := (commute o1 o2) (at level 50).
+
+Lemma commute_refl a : a ⋈ a.
+Proof.
+  split;[|split];auto.
+Qed.
+Lemma commute_sym a b : a ⋈ b -> b ⋈ a.
+Proof.
+  intros (h1&h2&h3);split;[|split];auto.
+Qed.
+Lemma commute_better a b : a ⋈ b -> (a::b::nil) ⊲ (b::a::nil).
+Proof.
+  intros (h1&h2&h3);split.
+  unfold cost_schedule;simpl;rewrite plus_comm;apply le_refl.
+  intros e h;split;auto.
+Qed.
+    
+Hint Resolve commute_refl commute_sym commute_better.
+
+
+Lemma commute_F i o : (exists j, o=(Dm,j) \/ o=(Dd,j)) -> (F,i) ⋈ o.
+Proof.
+  intros (j&[-> | ->]);split; try split; intros e;
+  try (intro h;inversion h as [|f o l hh1 hh2];cauto;
+       inversion hh2;cauto);simpl;unfold eval_op;simpl;auto.
+Qed.
+Lemma commute_Fb i o : (exists j, o=(Dm,j) \/ o=(Dd,j)) -> (Fb,i) ⋈ o.
+Proof.
+  intros (j&[-> | ->]);split; try split; intros e;
+  try (intro h;inversion h as [|f o l hh1 hh2];cauto;
+       inversion hh2;cauto);simpl;unfold eval_op;simpl;auto.
+Qed.
+Lemma commute_Wm i o : (exists j, o=(Wm,j)
+                                 \/ o=(Wd,j)
+                                 \/ o=(Dd,j)) -> (Wm,i) ⋈ o.
+Proof.
+  intros (j&[-> | [->| ->]]);split;
+  try split; intros e; try (intro h;inversion h as [|f o l hh1 hh2 hw0
+  hw1];cauto; inversion hh2 as [|g x y h1 h2 hw3 hw4];cauto;clear f o
+  l g x y hw0 hw1 hw3 hw4 H H0);simpl;unfold eval_op;simpl;auto.
+  Focus 3.
+  assert (NSet.Equal
+            (NSet.add i (NSet.add j (get_memory e)))
+            (NSet.add j (NSet.add i (get_memory e)))) as h.
+  apply NP.add_add.
+  split;[|split;[|split;[|split]]];simpl;auto;try rewrite h in*.
+
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *;
+  destruct hh1 as (<- & hmem);destruct h1 as (h1 & hmem');rewrite h1 in *;
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto.
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *;
+  destruct hh1 as (<- & hmem);destruct h1 as (h1 & hmem');rewrite h1 in *;
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto.
+Qed.
+
+Lemma commute_Wd i o : (exists j, o=(Wd,j)
+                                 \/ (o=(Dd,j) /\ i<>j)
+                                 \/ o=(Dm,j)) -> (Wd,i) ⋈ o.
+Proof.
+  intros (j&[-> | [(->&hij)| ->]]);split;
+  try split; intros e; try (intro h;inversion h as [|f o l hh1 hh2 hw0
+  hw1];cauto; inversion hh2 as [|g x y h1 h2 hw3 hw4];cauto;clear f o
+  l g x y hw0 hw1 hw3 hw4 H H0);simpl;unfold eval_op;simpl;auto.
+  assert (NSet.Equal
+            (NSet.add i (NSet.add j (get_disk e)))
+            (NSet.add j (NSet.add i (get_disk e)))) as h.
+  apply NP.add_add.
+  repeat split;simpl;auto;try apply h.
+  
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto.
+  apply NP.Dec.F.add_iff;right;auto.
+
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto.
+  rewrite NP.Dec.F.add_iff in hh1; destruct hh1 as [hh1|hh1];cauto.
+
+  repeat split;simpl;auto;intros h.
+  rewrite NP.Dec.F.add_iff in h; destruct h as [->|h];
+  [|rewrite NP.Dec.F.remove_iff in h;destruct h as (h1 & h2)];
+  apply NP.Dec.F.remove_iff;split;try apply NP.Dec.F.add_iff;cauto.
+  rewrite NP.Dec.F.remove_iff in h;destruct h as (h1 & h2);
+  rewrite NP.Dec.F.add_iff in h1; destruct h1 as [->|h1];
+  apply NP.Dec.F.add_iff;auto;right;apply NP.Dec.F.remove_iff;split;cauto.
+
+Qed.
+Lemma commute_Rm i o : (exists j,(o=(Dm,j) /\ i<>j)
+                                 \/ o=(Dd,j)) -> (Rm,i) ⋈ o.
+Proof.
+  intros (j&[(->&hij)| ->]);split;
+  try split; intros e; try (intro h;inversion h as [|f o l hh1 hh2 hw0
+  hw1];cauto; inversion hh2 as [|g x y h1 h2 hw3 hw4];cauto;clear f o
+  l g x y hw0 hw1 hw3 hw4 H H0);simpl;unfold eval_op;simpl;auto.
+
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto.
+  apply NP.Dec.F.remove_iff in hh1 as (hh1&hh3);auto.
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto.
+  apply NP.Dec.F.remove_iff;split;auto.
+Qed.
+
+Lemma commute_Rd i o : (exists j, (o=(Dd,j) /\ i<>j)
+                                  \/ o=(Dm,j)) -> (Rd,i) ⋈ o.
+Proof.
+  intros (j&[(->&hij)| ->]);split;
+  try split; intros e; try (intro h;inversion h as [|f o l hh1 hh2 hw0
+  hw1];cauto; inversion hh2 as [|g x y h1 h2 hw3 hw4];cauto;clear f o
+  l g x y hw0 hw1 hw3 hw4 H H0);simpl;unfold eval_op;simpl;auto.
+  
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto.
+  apply NP.Dec.F.remove_iff in hh1 as (hh1&hh3);auto.
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto.
+  apply NP.Dec.F.remove_iff;split;auto.
+Qed.
+
+Lemma commute_Dm i o : (exists j, (o=(Dm,j) /\ i<>j)
+                                 \/ o=(Dd,j)) -> (Dm,i) ⋈ o.
+Proof.
+  intros (j&[(->&hij)| ->]);split;
+  try split; intros e; try (intro h;inversion h as [|f o l hh1 hh2 hw0
+  hw1];cauto; inversion hh2 as [|g x y h1 h2 hw3 hw4];cauto;clear f o
+  l g x y hw0 hw1 hw3 hw4 H H0);simpl;unfold eval_op;simpl;auto.
+  
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto;
+  apply NP.Dec.F.remove_iff in hh1 as (hh1&hh3);auto.
+  apply NP.Dec.F.remove_iff;split;auto.
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto;
+  apply NP.Dec.F.remove_iff in hh1 as (hh1&hh3);auto.
+  apply NP.Dec.F.remove_iff;split;auto.
+  repeat split;simpl;auto;intros h; apply NP.Dec.F.remove_iff in h as (h1&h2);
+  apply NP.Dec.F.remove_iff in h1 as (h1&h3);apply NP.Dec.F.remove_iff;split;auto;
+  apply NP.Dec.F.remove_iff;split;auto.
+Qed.
+
+Lemma commute_Dd i o : (exists j,  (o=(Dd,j) /\ i<>j)) -> (Dd,i) ⋈ o.
+Proof.
+  intros (j& ->&hij);split;
+  try split; intros e; try (intro h;inversion h as [|f o l hh1 hh2 hw0
+  hw1];cauto; inversion hh2 as [|g x y h1 h2 hw3 hw4];cauto;clear f o
+  l g x y hw0 hw1 hw3 hw4 H H0);simpl;unfold eval_op;simpl;auto.
+  
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto;
+  apply NP.Dec.F.remove_iff in hh1 as (hh1&hh3);auto.
+  apply NP.Dec.F.remove_iff;split;auto.
+  simpl in *;unfold eval_op in *;simpl in *;unfold valid_op in *;simpl in *.
+  apply vcons;[|apply vcons];simpl;unfold valid_op;simpl;try split;auto;
+  apply NP.Dec.F.remove_iff in hh1 as (hh1&hh3);auto.
+  apply NP.Dec.F.remove_iff;split;auto.
+  repeat split;simpl;auto;intros h; apply NP.Dec.F.remove_iff in h as (h1&h2);
+  apply NP.Dec.F.remove_iff in h1 as (h1&h3);apply NP.Dec.F.remove_iff;split;auto;
+  apply NP.Dec.F.remove_iff;split;auto.
+Qed.
