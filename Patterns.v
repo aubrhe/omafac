@@ -115,6 +115,8 @@ Lemma f_preserve_pat (P Q : schedule -> Prop) f :
      Q u ->
      f u = v1 ++ v2 ->
      P (u1++v1) ->
+     u1 <> nil ->
+     v1 <> nil ->
      exists u2 u3,
        u = u2 ++ u3/\
        P(u1++u2))
@@ -123,6 +125,8 @@ Lemma f_preserve_pat (P Q : schedule -> Prop) f :
      Q u ->
      f u = v1 ++ v2 ->
      P (v2++u1) ->
+     v2 <> nil ->
+     u1 <> nil ->
      exists u2 u3,
        u = u2 ++ u3/\
        P(u3++u1))
@@ -150,77 +154,143 @@ Proof.
   decomp hv;
     [decomp h5;
       [decomp h7;
-        [apply (h1 _ _ _ u) in h5;auto;destruct h5 as (u5 & u6 & -> & h)
-        |destruct u4;
-          [simpl in *;rewrite<- app_nil_end in *;
-           apply (h1 u2 _ nil) in hpf;try rewrite <- app_nil_end;auto;
-           destruct hpf as (u5 & u6 & -> & h)
-          |destruct u;
-            [rewrite app_ass in *;  simpl in *;apply (h2 u2 nil) in hpf;
-             cauto;destruct hpf as (u5 & u6 & -> & h)
-            |apply h4 in hpf;cauto]]]
-      |
-      ]
+        [destruct u;
+          [
+          |destruct u0]
+        |destruct u4;destruct u;
+         [
+         |destruct u0
+         |set (fu2:=f u2); assert (f u2 = fu2) as hfu2;auto;
+          destruct fu2;rewrite hfu2 in *
+         |]]
+      | ]
     |decomp h5;
       [decomp h7;
-        [apply (h2 _ _ _ u4) in h6;auto;destruct h6 as (u5 & u6 & -> & h)
-        |apply h3 in h6;auto; destruct h6 as (u5 & u6 & u7 & -> & h)]
-      |
-      ]
-    ].
-  exists v1;exists (u++u5);exists (u6++u3);
+        [destruct u0;[|destruct u4]
+        |]
+      |]].
+
+  rewrite <- app_nil_end in *;simpl in *;cauto.
+  apply (h3 u2 nil _ u4) in hpf;auto;
+  destruct hpf as (u5 & u6 & u7 & -> & h).
+  exists (v1++u5);exists u6;exists (u7++u3);
   split;repeat rewrite app_ass;auto.
-  exists v1; exists (u++u5);exists (u6++v3);
+
+  rewrite <- app_nil_end in *;simpl in *;cauto.
+  exists v1;exists (o::u);exists (u2++u3);
   split;repeat rewrite app_ass;auto.
-  exists (v1++u5); exists (u6++o::u4);exists v3;
-  split;repeat rewrite app_ass;auto.   
-  exists v1;exists (o0::u++u2++o::u4);exists v3;
-  split;simpl;repeat rewrite app_ass;auto.
+
+  apply (h1 _ _ _ (o::u)) in h5;auto;
+  destruct h5 as (u5 & u6 & -> & h);cauto.
+  exists v1;exists (o::u++u5);exists (u6++u3);
+  split;repeat (simpl;rewrite app_ass);cauto.             
+
+  rewrite <- app_nil_end in *;simpl in *;cauto.
+  apply (h3 u2 nil _ nil) in hpf;auto;
+  repeat rewrite <- app_nil_end in *;simpl in *;cauto;
+  destruct hpf as (u5 & u6 & u7 & -> & h).
+  exists (v1++u5);exists u6;exists (u7++v3);
+  split;repeat rewrite app_ass;auto.
+
+  rewrite <- h5 in *;rewrite <- app_nil_end in *;
+  simpl in *;cauto.
+  exists v1;exists (o::u);exists (u2++v3);
+  split;repeat rewrite app_ass;auto.
+  
+  rewrite <- app_nil_end in *;repeat rewrite app_ass in *;cauto.
+  apply (h1 u2 _ nil) in hpf;try rewrite <- h5;
+  try rewrite <- app_nil_end in *;cauto;
+  destruct hpf as (u5 & u6 & -> & h).
+  exists v1;exists (o::u++u5);exists (u6++v3);
+  split;repeat (rewrite app_ass;simpl);auto.
+
+  simpl in *;rewrite <- app_nil_end in *.
+  exists (v1++u2);exists (o::u4);exists v3;
+  split;repeat (rewrite app_ass;simpl);auto.
+
+  simpl in *;rewrite <- app_nil_end in *.
+  rewrite app_comm_cons in hpf;
+  apply (h2 u2 nil) in hpf;cauto;
+  destruct hpf as (u5 & u6 & -> & h).
+  exists (v1++u5);exists (u6++o::u4);exists v3;
+  split;repeat (rewrite app_ass;simpl);auto.
+
+  apply h4 in hpf;cauto.
+  exists v1;exists (o0 :: u ++ u2 ++ o :: u4);exists v3;
+  split;repeat (rewrite app_ass;simpl);auto.
+
   exists v1;exists v2;exists (u0++u2++u3);
-  split;repeat rewrite app_ass;auto.
-  exists (u1++u5);exists (u6++u4);exists v3;
-  split;repeat rewrite app_ass;auto.
+  split;repeat (rewrite app_ass;simpl);auto.
+
+  simpl in *;rewrite <- app_nil_end in *.
+  exists (u1++u2);exists u4;exists v3;
+  split;repeat (rewrite app_ass;simpl);auto.
+
+  simpl in *;rewrite <- app_nil_end in *.
+  apply (h3 u2 u _ nil) in hpf;try rewrite <- app_nil_end in *;auto;
+  destruct hpf as (u5 & u6 & u7 & -> & h).
+  exists (u1++u5);exists u6;exists (u7++v3);
+  split;repeat (rewrite app_ass;simpl);auto.
+
+  apply (h2 u2 u) in hpf;cauto;
+  destruct hpf as (u5 & u6 & -> & h).
+  exists (u1++u5);exists (u6++o0::u4);exists v3;
+  split;repeat (rewrite app_ass;simpl);auto.
+
+  apply (h3 u2 u _ u4) in hpf;auto;
+  destruct hpf as (u5 & u6 & u7 & -> & h).
   exists (u1++u5);exists u6;exists (u7++u3);
-  split;repeat rewrite app_ass;auto.
+  split;repeat (rewrite app_ass;simpl);auto.
+
   exists (u1++u2++u0);exists v2;exists v3;
-  split;repeat rewrite app_ass;auto.
+  split;repeat (rewrite app_ass;simpl);auto.
 Qed.
 
 Lemma f_preserve_pat_tail  (P Q : schedule -> Prop) f :
   (forall a b, f(a::b) = b) ->
   f nil = nil ->
-  (forall a u v w, Q (a::u++v) -> P (w++u) -> u <> nil -> P (w++a::u)) ->
-  (forall a u v w, Q (a::u) -> P (v++u++w) -> u++w <> nil -> v <> nil -> P (v++a::u++w)) ->
+  (forall a u v w, Q (a::u++v) -> P (w++u) -> u <> nil -> w <> nil
+                   -> P (w++a::u)) ->
+  (forall a u v w, Q (a::u) -> P (v++u++w) -> u++w <> nil -> v <> nil
+                   -> P (v++a::u++w)) ->
   forall u1 u2 u3, Q u2 ->
-                   ~ pattern P (u1++u2++u3) -> ~ pattern P (u1++ f u2 ++ u3).
+                   ~ pattern P (u1++u2++u3)
+                   -> ~ pattern P (u1++ f u2 ++ u3).
 Proof.
   intros hcons hnil h1 h2.
-  apply f_preserve_pat;intros.
+  apply f_preserve_pat;
+  [intros u v1 v2 u1 hq hf hp hu1 hv1
+  |intros u v1 v2 u1 hq hf hp hv2 hu1
+  |intros u v1 v2 v3 hq hf hp
+  |intros u u1 u3 hq hp hu3 hu1].
 
   destruct u.
+
   exists nil;exists nil;split;simpl;auto;
-  rewrite hnil in *;symmetry in H0;apply app_eq_nil in H0;destruct H0 as (-> & ->);auto.
+  rewrite hnil in *;symmetry in hf;apply app_eq_nil in hf;
+  destruct hf as (-> & ->);auto.
 
   rewrite hcons in *;
-    rewrite H0 in *.
-  destruct v1.
-  exists nil; exists (o::v2);split;auto.
-  apply (h1 _ _ _ u1) in H;cauto.
-  exists (o::o0::v1);exists v2;split;auto.
+    rewrite hf in *.
+  apply (h1 _ _ _ u1) in hq;cauto.
+  exists (o::v1);exists v2;split;auto.
+
   
   destruct u.
   exists nil;exists nil;split;simpl;auto;
-  rewrite hnil in *;symmetry in H0;apply app_eq_nil in H0;destruct H0 as (-> & ->);auto.
+  rewrite hnil in *;symmetry in hf;apply app_eq_nil in hf;
+  destruct hf as (-> & ->);auto.
 
-  rewrite hcons in *;rewrite H0 in *.
+  rewrite hcons in *;rewrite hf in *.
   exists (o::v1);exists v2;split;auto.
 
   destruct u.
   exists nil;exists nil;exists nil;split;simpl;auto;
-  rewrite hnil in *;symmetry in H0;apply app_eq_nil in H0;destruct H0 as (-> & H0);
-  apply app_eq_nil in H0;destruct H0 as (-> & ->);auto.
+  rewrite hnil in *;symmetry in hf;apply app_eq_nil in hf;
+  destruct hf as (-> & hf);
+  apply app_eq_nil in hf;destruct hf as (-> & ->);auto.
 
-  rewrite hcons in *;rewrite H0 in *.
+  rewrite hcons in *;rewrite hf in *.
   exists (o::v1);exists v2;exists v3;split;auto.  
 
   destruct u.
@@ -228,5 +298,4 @@ Proof.
   rewrite hcons in *;simpl in *.
   destruct u;[destruct u3|];cauto.
   apply h2;cauto.
-  
 Qed.

@@ -5,12 +5,8 @@ Require Import Tools Model Patterns.
 Definition P00 (u2 : schedule) :=
   exists i v, u2 = (Wm,i)::v++(Wm,i)::nil /\ ~ In (Dm,i) v.
 
-Definition f00 (u2 :schedule) :=
-  match u2 with
-    | nil => nil
-    | a::v => v
-  end.
-
+Definition f00 (u2 :schedule) := tl u2.
+ 
 Lemma red_fun_f00 :
   reducing_function P00 (fun _ => True) f00.
 Proof.
@@ -107,9 +103,46 @@ Proof.
   apply dec_P00.
 Qed.
 
+Lemma preserve00_tl (P : schedule -> Prop) f :
+  (forall u, f u = tl u) ->
+  (forall o i u, P ((o,i)::u) -> o<>Wm /\ o<> Dm) ->
+  forall u2 u1 u3 : schedule,
+    P u2 ->
+    K00 (u1 ++ u2 ++ u3) -> K00 (u1 ++ f u2 ++ u3).
+Proof.
+  intros hf hP u2 u1 u3 hu2 hk00.
+  apply (f_preserve_pat_tail _ P);auto;
+  [intros a b
+  |
+  |intros a u v w h1 (i & v' & h3 & h4) h5 h6
+  |intros a u v w h1 (i & v' & h3 & h4) h5 h6];
+  try rewrite hf in *; simpl in *;auto;
+  clear u1 u2 u3 hk00 hu2.
+ 
+  destruct a; apply hP in h1;destruct h1 as (h1 & h2);
+  destruct w;[contradict h6;auto|]; inversion h3 as ( (ho & h7) ).
+  apply app_inv_tail in h7 as (u' & -> & ->);auto.
+  exists i;exists (w++(o,n)::u');split;
+  [rewrite app_ass ;auto|].
+
+  intro h;apply in_app_or in h; case h as [h|[h|h]];cauto;
+  [|inversion h;auto|];
+  apply h4;apply in_or_app;[left|right];auto.
+
+  destruct a; apply hP in h1;destruct h1 as (h1 & h2);
+  destruct v;[contradict h6;auto|]; inversion h3 as ( (ho & h7) ).
+  apply app_inv_tail in h7 as (u' & -> & ->);auto.
+  exists i;exists (v++(o,n)::u');split;
+  [rewrite app_ass ;auto|].
+  
+  intro h;apply in_app_or in h; case h as [h|[h|h]];cauto;
+  [|inversion h;auto|];
+  apply h4;apply in_or_app;[left|right];auto.
+Qed.
+  
 Definition P01 (u : schedule) := exists i, u=(Dd,i)::nil.
 
-Definition f01 : schedule -> schedule := f00.
+Definition f01 (u : schedule) : schedule := tl u.
 
 Definition K01 u := ~ pattern P01 u /\ K00 u.
 
@@ -123,23 +156,31 @@ Proof.
   repeat split;auto.
   simpl.
   apply NP.subset_remove_3;apply NP.subset_refl.
-  unfold K00.
-  apply (f_preserve_pat_tail _ P01);intros;simpl;auto;
-  [| |exists i;auto].
-  destruct H as (j & h).
-  inversion h.
-  apply app_eq_nil in H3;destruct H3 as ( -> & ->);cauto.
-  contradict H1;auto.
-  destruct H as (j,h);inversion h.
-  destruct H0 as (k & s & hs1 & hs2).
-  rewrite H4 in *;simpl in *.
-  rewrite app_comm_cons in hs1.
-  apply app_inv_tail in hs1;auto.
-  destruct hs1 as (z & h1 & ->).
-  destruct v;[contradict H2;auto|].
-  simpl in h1;inversion h1.
-  exists k;exists (v++(Dd,j)::z);split;auto.
-  rewrite<- app_assoc;auto.
-  intro hi;apply in_app_or in hi;case hi as [hi|[hi|hi]];cauto;
-  apply hs2;rewrite H5;apply in_or_app;[left|right];auto.
+  apply (preserve00_tl P01);intros;auto.
+  destruct H as (j & h );inversion h;split;intro;cauto.
+  exists i;auto.
+Qed.
+
+Lemma P01_equiv_In u :
+  pattern P01 u <-> exists i, In (Dd,i) u.
+Proof.
+  split;[intros (u1 & u2 & u3 & -> & i & ->)|intros (i&h)].
+  exists i;apply in_or_app; right;apply in_or_app;left;left;auto. 
+  apply in_split in h as (u1 & u3 & ->) ;exists u1;
+  exists ((Dd,i)::nil);exists u3;split;auto;exists i;auto.
+Qed.
+
+Lemma preserve_01 P f :
+  (forall u i, P u -> In (Dd,i) (f u) -> In (Dd,i) u)
+  -> forall u1 u2 u3, P u2 ->
+                      ~pattern P01 (u1++u2++u3) ->
+                      ~pattern P01 (u1++f u2++u3).
+Proof.
+  intros hf u1 u2 u3 hp hk hu.
+  rewrite P01_equiv_In in *.
+  destruct hu as (i & h);apply in_app_or in h as [h|h].
+  apply hk;exists i;apply in_or_app;left;auto.
+  apply in_app_or in h as [h|h].
+  apply hk;exists i;apply in_or_app;right;apply in_or_app;left;auto.
+  apply hk;exists i;apply in_or_app;right;apply in_or_app;right;auto.
 Qed.
